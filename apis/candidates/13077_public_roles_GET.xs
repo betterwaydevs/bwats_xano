@@ -1,0 +1,14 @@
+query "public/roles" verb=GET {
+  input {
+  }
+
+  stack {
+    db.query roles {
+      where = $db.roles.type == "candidates"
+      sort = {roles.name: "asc"}
+      return = {type: "list"}
+    } as $model
+  }
+
+  response = $model
+}

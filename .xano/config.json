@@ -1,0 +1,11 @@
+{
+  "instanceName": "xcip-7lhj-bnaa",
+  "workspaceId": 6,
+  "branch": "development",
+  "paths": {
+    "functions": "functions",
+    "tables": "tables",
+    "apis": "apis",
+    "tasks": "tasks"
+  }
+}
