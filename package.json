@@ -1,7 +1,7 @@
 {
 "scripts": {
     "lint:xano": "xanoscript-lint xano",
-    "test:api": "hurl tests/*.hurl",
+"test:api": "hurl --variable TEST_USER_EMAIL=\\\"$TEST_USER_EMAIL\\\" --variable TEST_USER_PASSWORD=\\\"$TEST_USER_PASSWORD\\\" --variable TEST_RUN_SUFFIX=\\\"$TEST_RUN_SUFFIX\\\" tests/*.hurl",
     "check": "npm run lint:xano && npm run test:api"
   }
 }

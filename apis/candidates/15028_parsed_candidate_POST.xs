@@ -47,6 +47,29 @@ query parsed_candidate verb=POST {
         } as $manatal_candidate1
       }
     }
+
+    db.query project_person_association {
+      where = $db.project_person_association.person_id == $model.id && $db.project_person_association.person_type == "candidate" && $db.project_person_association.project_id == null
+      return = {type: "single"}
+      output = ["id"]
+    } as $existing_candidate_association
+  
+    conditional {
+      if ($existing_candidate_association == null) {
+        db.add project_person_association {
+          data = {
+            created_at       : "now"
+            project_id       : null
+            person_id        : $model.id
+            person_type      : "candidate"
+            current_stage_id : null
+            updated_at       : now
+            added_by_user_id : null
+            elastic_search_id: $model.elastic_search_document_id
+          }
+        } as $candidate_association
+      }
+    }
   }
 
   response = $model
