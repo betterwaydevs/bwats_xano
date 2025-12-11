@@ -321,12 +321,15 @@ query "candidate/quick_apply" verb=POST {
                   error = "Unable to build Elasticsearch payload for candidate"
                 }
               
-                function.run "elastic_search/document" {
-                  input = {
-                    index : "candidates"
-                    method: "POST"
-                    doc   : $candidate_es_doc
-                  }
+                cloud.elasticsearch.document {
+                  auth_type = "API Key"
+                  key_id = $env.es_key_id
+                  access_key = $env.es_access_key
+                  region = ""
+                  method = "POST"
+                  index = "candidates"
+                  doc_id = ""
+                  doc = $candidate_es_doc
                 } as $candidate_es_create
               
                 precondition ($candidate_es_create != null && $candidate_es_create != 404) {
@@ -446,13 +449,15 @@ query "candidate/quick_apply" verb=POST {
                   }
                 }
               
-                function.run "elastic_search/document" {
-                  input = {
-                    index : "candidates"
-                    method: "POST"
-                    doc_id: $candidate_elastic_search_document_id
-                    doc   : $candidate_es_contact_patch
-                  }
+                cloud.elasticsearch.document {
+                  auth_type = "API Key"
+                  key_id = $env.es_key_id
+                  access_key = $env.es_access_key
+                  region = ""
+                  method = "POST"
+                  index = "candidates"
+                  doc_id = $candidate_elastic_search_document_id
+                  doc = $candidate_es_contact_patch
                 }
               }
             }

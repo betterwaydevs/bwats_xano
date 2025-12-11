@@ -159,5 +159,6 @@ table parsed_prospect {
       type : "btree"
       field: [{name: "is_quick_normalized", op: "desc"}]
     }
+    {type: "btree", field: [{name: "country", op: "desc"}]}
   ]
 }
