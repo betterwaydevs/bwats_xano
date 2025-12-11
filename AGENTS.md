@@ -34,7 +34,48 @@ Prior to building the frontend, ensure that all the changes have been pushed to 
 ## Additional Guidelines
 
 - **Xanoscript Syntax**: Adhere strictly to XanoScript syntax rules. You can use comments with the `//` symbol, a comment needs to be on it's own line and outside a statement. Refer to the [Xano Tips and Tricks](./docs/tips_and_tricks.md) for details.
-- **Expression**: Xano offers a rich set of expressions for data manipulation. Refer to the [Expression Lexicon](./docs/expression_guideline.md) for details. Avoid chaining too many expressions in a single line for readability, instead break them into intermediate variables.
+- **Expression**: Xano offers a rich set of expressions for data manipulation. Refer t 
+ago the [Expression Lexicon](./docs/expression_guideline.md) for details. Avoid chaining too many expressions in a single line for readability, instead break them into intermediate variables.
 - **Xano Statements**: Familiarize yourself with the available statements in XanoScript by consulting the [Function Lexicon](./docs/functions.md). Use control flow statements like `if`, `foreach`, and `try_catch` to manage logic effectively.
 - **User Management**: Most Xano workspaces come with a built-in user auth and user table, avoid recreating these, the user table can be extended with the necessary columns and the the built-in auth functions can be customized accordingly.
 - **Building from Loveable**: If the project is being built from a Loveable-generated website, follow the specific strategy outlined in the [Building from Loveable Guide](./docs/build_from_loveable.md).
+
+# Agents Guide – Xano Dev + Hurl Tests
+
+This file defines how agents must work with this repo and the Xano backend.
+
+---
+
+## 1. Xano Context
+
+- Backend: **Xano – Atlanticsoft (DEV environment only)**  
+- Only allowed host:  
+  `https://xano.atlanticsoft.co/api:wosIWFpR:development`
+- Every request must include:  
+  `?x-data-source=development`
+
+---
+
+## 2. Allowed Tools (Strict)
+
+### ✅ Allowed  
+**Only the Xano MCP Server**, with these tool types:
+
+- Read workspace metadata  
+- Read APIs, functions, tables, schemas  
+- Update API endpoints  
+- Update functions  
+
+### ❌ Forbidden  
+- Any destructive MCP tool  
+  (delete, truncate, drop, wipe, reset, etc.)  
+- Anything targeting production or another branch
+
+Agents must **never** call a tool that modifies or deletes data.
+
+---
+
+## 3. Base URL Rules
+
+All API requests must use:
+
