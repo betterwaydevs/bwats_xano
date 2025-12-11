@@ -40,6 +40,8 @@ ago the [Expression Lexicon](./docs/expression_guideline.md) for details. Avoid 
 - **User Management**: Most Xano workspaces come with a built-in user auth and user table, avoid recreating these, the user table can be extended with the necessary columns and the the built-in auth functions can be customized accordingly.
 - **Building from Loveable**: If the project is being built from a Loveable-generated website, follow the specific strategy outlined in the [Building from Loveable Guide](./docs/build_from_loveable.md).
 
+
+
 # Agents Guide – Xano Dev + Hurl Tests
 
 This file defines how agents must work with this repo and the Xano backend.
@@ -48,7 +50,7 @@ This file defines how agents must work with this repo and the Xano backend.
 
 ## 1. Xano Context
 
-- Backend: **Xano – Atlanticsoft (DEV environment only)**  
+- Backend: **Xano – Atlanticsoft (DEV environment only)**
 - Only allowed host:  
   `https://xano.atlanticsoft.co/api:wosIWFpR:development`
 - Every request must include:  
@@ -58,24 +60,43 @@ This file defines how agents must work with this repo and the Xano backend.
 
 ## 2. Allowed Tools (Strict)
 
-### ✅ Allowed  
+### ✅ Allowed
 **Only the Xano MCP Server**, with these tool types:
-
 - Read workspace metadata  
 - Read APIs, functions, tables, schemas  
 - Update API endpoints  
 - Update functions  
 
-### ❌ Forbidden  
-- Any destructive MCP tool  
-  (delete, truncate, drop, wipe, reset, etc.)  
+### ❌ Forbidden
+- Any destructive MCP tool (delete, truncate, drop, wipe, reset, etc.)
 - Anything targeting production or another branch
 
 Agents must **never** call a tool that modifies or deletes data.
 
 ---
 
-## 3. Base URL Rules
+## 3. Authentication
 
-All API requests must use:
+Auth uses environment variables only (never hardcode credentials):
+- `TEST_USER_EMAIL`
+- `TEST_USER_PASSWORD`
 
+Agents must always:
+1. Login using the auth endpoint.
+2. Capture the returned token.
+3. Use that token in all protected requests.
+
+Example login block:
+
+```hurl
+POST https://xano.atlanticsoft.co/api:wosIWFpR:development/auth/login?x-data-source=development
+Content-Type: application/json
+
+{
+  "email": "{{TEST_USER_EMAIL}}",
+  "password": "{{TEST_USER_PASSWORD}}"
+}
+
+HTTP 200
+jsonpath "$.authToken" exists
+capture token jsonpath "$.authToken"
