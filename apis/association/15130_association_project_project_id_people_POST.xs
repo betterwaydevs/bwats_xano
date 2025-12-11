@@ -44,6 +44,11 @@ query "association/project/{project_id}/people" verb=POST {
       }
     }
   
+    precondition ($person != null) {
+      error_type = "notfound"
+      error = "Person not found"
+    }
+  
     db.add project_person_association {
       data = {
         created_at       : "now"
@@ -58,7 +63,6 @@ query "association/project/{project_id}/people" verb=POST {
       }
     } as $model
   
-    precondition ()
     db.add person_activity_history {
       data = {
         created_at          : "now"

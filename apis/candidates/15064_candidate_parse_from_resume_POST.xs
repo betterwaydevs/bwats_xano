@@ -621,15 +621,13 @@ query "candidate/parse_from_resume" verb=POST {
                   value = $elastic_update_status|set:"attempted":true
                 }
               
-                cloud.elasticsearch.document {
-                  auth_type = "API Key"
-                  key_id = $env.es_key_id
-                  access_key = $env.es_access_key
-                  region = ""
-                  method = "GET"
-                  index = "candidates"
-                  doc_id = $candidate_update.elastic_search_document_id
-                  doc = {}
+                function.run "elastic_search/document" {
+                  input = {
+                    index : "candidates"
+                    method: "GET"
+                    doc_id: $candidate_update.elastic_search_document_id
+                    doc   : {}
+                  }
                 } as $es_candidate
               
                 precondition ($es_candidate != null && $es_candidate != 404) {
@@ -664,15 +662,13 @@ query "candidate/parse_from_resume" verb=POST {
                   timeout = 1
                 } as $es_updated_source
               
-                cloud.elasticsearch.document {
-                  auth_type = "API Key"
-                  key_id = $env.es_key_id
-                  access_key = $env.es_access_key
-                  region = ""
-                  method = "PUT"
-                  index = "candidates"
-                  doc_id = $candidate_update.elastic_search_document_id
-                  doc = $es_updated_source
+                function.run "elastic_search/document" {
+                  input = {
+                    index : "candidates"
+                    method: "PUT"
+                    doc_id: $candidate_update.elastic_search_document_id
+                    doc   : $es_updated_source
+                  }
                 } as $es_update
               
                 var.update $elastic_update_status {

@@ -10,7 +10,7 @@ query "prospects/batch_quick_normalize" verb=POST {
       sort = {parsed_prospect.created_at: "desc"}
       return = {
         type  : "list"
-        paging: {page: 1, per_page: 1000, metadata: false}
+        paging: {page: 1, per_page: 2000, metadata: false}
       }
     
       output = ["id", "skills"]

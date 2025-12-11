@@ -113,10 +113,14 @@ function whatsapp_api_wrapper {
       if ($input.phone_number != null && $input.phone_number != "") {
         api.lambda {
           code = """
-              const phone = ($input.phone_number || '').trim();
-              if (!phone) {
+              const rawPhone = ($input.phone_number || '').trim();
+              if (!rawPhone) {
                 return { error: 'Empty phone number' };
               }
+            
+              // Remove @s.whatsapp.net suffix if provided (case-insensitive)
+              const suffixRegex = /@s\.whatsapp\.net$/i;
+              const phone = rawPhone.replace(suffixRegex, '');
             
               // Remove +, spaces, dashes, parentheses
               let cleaned = phone
@@ -234,6 +238,7 @@ function whatsapp_api_wrapper {
         var.update $endpoint_url {
           value = "https://gate.whapi.cloud/messages/list/"
             |concat:$formatted_phone
+            |concat:"@s.whatsapp.net"
             |concat:"?count="
             |concat:$input.count
             |concat:"&offset="

@@ -30,6 +30,9 @@ query "search/prospects" verb=POST {
     // the country where the candidate should be located
     text country? filters=trim
   
+    // optional list of acceptable countries (OR logic)
+    text[] countries? filters=trim
+  
     // what page to get
     int page?
   
@@ -76,6 +79,7 @@ query "search/prospects" verb=POST {
         min_year_of_experience : $input.min_year_of_experience
         city                   : $input.city
         country                : $input.country
+        countries              : $input.countries
         page                   : $input.page
         item_per_page          : $input.item_per_page
         keyword_search         : $input.keyword_search

@@ -149,7 +149,7 @@ Note that joining a table does not return its fields; it only allows you to use 
 
 ### Addon
 
-An Addon is a function that is running another query to fetch related data for each record returned by the main query. This is useful for fetching related records without using joins.
+An Addon is a function that is running a single `db.query` statement to fetch related data for each record returned by the main query. This is useful for fetching related records without using joins. Note that only a single `db.query` statement is allowed in an addon stack, no other operations is allowed.
 
 For example, if you wanted to fetch blog posts along with their likes and comments, you could use addons like this (assuming you have `blog_post_likes` and `blog_post_comments` addons defined):
 

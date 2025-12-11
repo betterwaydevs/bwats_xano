@@ -28,6 +28,9 @@ query "search/candidates_stats" verb=POST {
     // the country where the candidate should be located
     text country? filters=trim
   
+    // optional list of acceptable countries (OR logic)
+    text[] countries? filters=trim
+  
     text keyword_search? filters=trim
     text? id? filters=trim
     int? role_id?
@@ -82,6 +85,13 @@ query "search/candidates_stats" verb=POST {
             throw new Error('min_year_of_experience must be a number');
         }
         
+        // Normalize arrays that may arrive as single values
+        const normalizeArray = (v) => Array.isArray(v) ? v : (v == null ? [] : [v]);
+        
+        const normalizedCountries = normalizeArray($input.countries ?? $input.country)
+          .map(v => typeof v === 'string' ? v.trim() : '')
+          .filter(v => v.length > 0);
+        
         // --- 3. Determine if Recruiter/Private Access ---
         // Check for private_information in both possible locations: $input and $var
         let isPrivate = false;
@@ -126,8 +136,8 @@ query "search/candidates_stats" verb=POST {
         const initialMustClauses = [];
         initialMustClauses.push({ range: { "total_experience_years": { gte: $input.min_year_of_experience } } });
         
-        if ($input.country && typeof $input.country === 'string' && $input.country.trim() !== '') {
-            initialMustClauses.push({ term: { "country": $input.country } });
+        if (normalizedCountries.length > 0) {
+            initialMustClauses.push({ terms: { "country": normalizedCountries } });
         }
         
         let query = {
@@ -361,71 +371,315 @@ query "search/candidates_stats" verb=POST {
   
     api.lambda {
       code = """
-        // Xano Function: es_stats_query_builder.js
-        // Build an Elasticsearch/OpenSearch stats query for candidate statistics (for use in Xano Function Stack)
-        // Output matches the structure of es_stats_query_sample.json
-        
-        // Use $var.roles_input if it exists, otherwise use $input
         const roleInput = $var.roles_input;
-        var input = (roleInput ? roleInput : $input);
+        const input = roleInput ? roleInput : $input;
         
-        // Helper: normalize a value to an array ("Native" -> ["Native"]) 
+        if (!input) {
+          throw new Error('Input is required');
+        }
+        
+        const PRIVATE_NAME_SEARCH_FIELDS = ["first_name", "last_name", "public_name"];
+        const PUBLIC_NAME_SEARCH_FIELDS = ["public_name", "first_name", "last_name"];
+        const PRIVATE_WORK_HISTORY_FIELDS = [
+          "work_history.role", "work_history.duties", "work_history.skills_used",
+          "work_history.description", "work_history.company", "work_history.anonymized_company"
+        ];
+        const PUBLIC_WORK_HISTORY_FIELDS = [
+          "work_history.role", "work_history.duties", "work_history.skills_used", "work_history.description"
+        ];
+        const PRIVATE_EDUCATION_FIELDS = [
+          "education.degree", "education.degree_level", "education.institution", "education.anonymized_institution"
+        ];
+        const PUBLIC_EDUCATION_FIELDS = ["education.degree", "education.degree_level"];
+        const COMMON_PUBLIC_SEARCH_FIELDS = ["headline_role", "role_summary", "technical_summary", "city"];
+        
+        const toNum = (v, def = null) => (v === undefined || v === null || v === '') ? def : Number(v);
         const normalizeArray = (v) => Array.isArray(v) ? v : (v == null ? [] : [v]);
         
-        function buildStatsQuery(input) {
-          let mustClauses = [];
-          let shouldClauses = []; // Add shouldClauses to match query_builder
+        function resolvePrivateFlag(inputValue) {
+          let privateInfo = (inputValue ? inputValue.private_information : undefined);
+          if (privateInfo === undefined && typeof $var !== 'undefined' && $var) {
+            privateInfo = $var.private_information;
+          }
+          if (privateInfo === true || privateInfo === 1 || privateInfo === "1") {
+            return true;
+          }
+          if (typeof privateInfo === "string") {
+            const lower = privateInfo.toLowerCase();
+            if (lower === "true" || lower === "yes" || lower === "1") {
+              return true;
+            }
+          }
+          if (privateInfo && typeof privateInfo === "object") {
+            try {
+              const value = privateInfo.value;
+              if (value === true || value === 1 || String(value).toLowerCase() === "true") {
+                return true;
+              }
+            } catch (err) {}
+          }
+          return false;
+        }
         
-          // Must-have skills filter
-          if (input.must_skills && Array.isArray(input.must_skills)) {
-            input.must_skills.forEach(skillGroup => {
-              if (
-                skillGroup &&
-                skillGroup.variations && Array.isArray(skillGroup.variations) && skillGroup.variations.length > 0 &&
-                typeof skillGroup.min_months === 'number'
-              ) {
-                mustClauses.push({
-                  nested: {
-                    path: "skills",
-                    query: {
-                      bool: {
-                        must: [
-                          { bool: { should: skillGroup.variations.map(v => ({ match: { "skills.skill": v } })) } },
-                          { range: { "skills.months_experience": { gte: skillGroup.min_months } } }
-                        ]
-                      }
+        const aggregations = {
+          by_country: {
+            terms: { field: "country", size: 10 }
+          },
+          by_experience: {
+            range: {
+              field: "total_experience_years",
+              ranges: [
+                { key: "Junior", from: 0, to: 2 },
+                { key: "Semi Senior", from: 2, to: 5 },
+                { key: "Senior", from: 5, to: 10 },
+                { key: "Senior +", from: 10 }
+              ]
+            }
+          },
+          langs: {
+            nested: { path: "languages" },
+            aggs: {
+              english_only: {
+                filter: { term: { "languages.language": "English" } },
+                aggs: {
+                  levels: {
+                    terms: { field: "languages.level", size: 10 }
+                  }
+                }
+              }
+            }
+          },
+          top_skills: {
+            nested: { path: "skills" },
+            aggs: {
+              skills_names: {
+                terms: { field: "skills.skill", size: 20 }
+              }
+            }
+          }
+        };
+        
+        const isPrivate = resolvePrivateFlag(input);
+        
+        if (typeof input.min_year_of_experience !== 'number') {
+          const coerced = toNum(input.min_year_of_experience, null);
+          if (coerced === null || Number.isNaN(coerced)) {
+            throw new Error('min_year_of_experience must be a number');
+          }
+          input.min_year_of_experience = coerced;
+        }
+        
+        if (input.max_years_of_experience !== undefined && input.max_years_of_experience !== null && typeof input.max_years_of_experience !== 'number') {
+          const coercedMax = toNum(input.max_years_of_experience, null);
+          if (coercedMax === null || Number.isNaN(coercedMax)) {
+            throw new Error('max_years_of_experience must be a number when provided');
+          }
+          input.max_years_of_experience = coercedMax;
+        }
+        
+        const normalizedCountries = normalizeArray(input.countries ?? input.country)
+          .map(v => typeof v === 'string' ? v.trim() : '')
+          .filter(v => v.length > 0);
+        
+        if (input.id) {
+          return {
+            size: 0,
+            query: {
+              term: {
+                _id: input.id
+              }
+            },
+            aggs: aggregations
+          };
+        }
+        
+        const initialMustClauses = [];
+        const experienceRange = { gte: input.min_year_of_experience };
+        if (typeof input.max_years_of_experience === 'number' && input.max_years_of_experience > 0) {
+          experienceRange.lte = input.max_years_of_experience;
+        }
+        initialMustClauses.push({ range: { "total_experience_years": experienceRange } });
+        
+        if (normalizedCountries.length > 0) {
+          initialMustClauses.push({ terms: { "country": normalizedCountries } });
+        }
+        
+        const query = {
+          query: {
+            bool: {
+              must: initialMustClauses,
+              should: [],
+              must_not: []
+            }
+          }
+        };
+        
+        const mustClauses = query.query.bool.must;
+        const shouldClauses = query.query.bool.should;
+        const mustNotClauses = query.query.bool.must_not;
+        
+        if (input.must_skills && Array.isArray(input.must_skills)) {
+          input.must_skills.forEach(skill => {
+            if (skill && Array.isArray(skill.variations) && skill.variations.length > 0) {
+              let minMonths = 0;
+              if (typeof skill.min_months === 'number' && Number.isFinite(skill.min_months)) {
+                minMonths = skill.min_months;
+              } else if (skill.min_months != null) {
+                const parsed = parseFloat(skill.min_months);
+                if (!Number.isNaN(parsed) && Number.isFinite(parsed)) {
+                  minMonths = parsed;
+                }
+              }
+              mustClauses.push({
+                nested: {
+                  path: "skills",
+                  ignore_unmapped: true,
+                  query: {
+                    bool: {
+                      must: [
+                        { bool: { should: skill.variations.map(v => ({ match: { "skills.skill": v } })) } },
+                        { range: { "skills.months_experience": { gte: minMonths } } }
+                      ]
                     }
                   }
-                });
+                }
+              });
+            }
+          });
+        }
+        
+        if (input.should_skills && Array.isArray(input.should_skills)) {
+          input.should_skills.forEach(skill => {
+            if (skill && Array.isArray(skill.variations) && skill.variations.length > 0) {
+              let minMonths = 0;
+              if (typeof skill.min_months === 'number' && Number.isFinite(skill.min_months)) {
+                minMonths = skill.min_months;
+              } else if (skill.min_months != null) {
+                const parsed = parseFloat(skill.min_months);
+                if (!Number.isNaN(parsed) && Number.isFinite(parsed)) {
+                  minMonths = parsed;
+                }
+              }
+              shouldClauses.push({
+                nested: {
+                  path: "skills",
+                  ignore_unmapped: true,
+                  query: {
+                    bool: {
+                      must: [
+                        { bool: { should: skill.variations.map(v => ({ match: { "skills.skill": v } })) } },
+                        { range: { "skills.months_experience": { gte: minMonths } } }
+                      ]
+                    }
+                  }
+                }
+              });
+            }
+          });
+        }
+        
+        if (input.keyword_search && typeof input.keyword_search === 'string' && input.keyword_search.trim() !== '') {
+          const keyword = input.keyword_search.trim();
+          const nameSearchFields = isPrivate ? PRIVATE_NAME_SEARCH_FIELDS : PUBLIC_NAME_SEARCH_FIELDS;
+          const workHistorySearchFields = isPrivate ? PRIVATE_WORK_HISTORY_FIELDS : PUBLIC_WORK_HISTORY_FIELDS;
+          const educationSearchFields = isPrivate ? PRIVATE_EDUCATION_FIELDS : PUBLIC_EDUCATION_FIELDS;
+        
+          const keywordShouldClauses = [];
+          const terms = keyword.split(/\s+/);
+        
+          if (terms.length > 1) {
+            const termQueries = terms.map(term => ({
+              multi_match: {
+                query: term,
+                fields: nameSearchFields,
+                fuzziness: "AUTO"
+              }
+            }));
+        
+            keywordShouldClauses.push({
+              bool: {
+                must: termQueries,
+                boost: 20.0
+              }
+            });
+        
+            keywordShouldClauses.push({
+              multi_match: {
+                query: keyword,
+                fields: ["first_name", "last_name"],
+                type: "phrase",
+                boost: 10.0
+              }
+            });
+        
+          } else {
+            keywordShouldClauses.push({
+              multi_match: {
+                query: keyword,
+                fields: nameSearchFields,
+                fuzziness: "AUTO"
               }
             });
           }
         
-          // Should-have skills filter (require at least one to match if provided)
-          if (input.should_skills && Array.isArray(input.should_skills)) {
-            input.should_skills.forEach(skill => {
-              if (
-                skill && Array.isArray(skill.variations) && skill.variations.length > 0 &&
-                typeof skill.min_months === 'number'
-              ) {
-                shouldClauses.push({
-                  nested: {
-                    path: "skills",
-                    query: {
-                      bool: {
-                        must: [
-                          { bool: { should: skill.variations.map(v => ({ match: { "skills.skill": v } })) } },
-                          { range: { "skills.months_experience": { gte: skill.min_months } } }
-                        ]
-                      }
-                    }
-                  }
-                });
-              }
-            });
-          }
+          keywordShouldClauses.push({ 
+            query_string: { 
+              query: keyword, 
+              fields: COMMON_PUBLIC_SEARCH_FIELDS, 
+              default_operator: "AND",
+              boost: 0.1 
+            } 
+          });
+          keywordShouldClauses.push({ 
+            nested: { 
+              path: "skills", 
+              ignore_unmapped: true, 
+              query: { 
+                query_string: { 
+                  query: keyword, 
+                  fields: ["skills.skill"], 
+                  default_operator: "AND"
+                } 
+              },
+              boost: 0.1 
+            } 
+          });
+          keywordShouldClauses.push({ 
+            nested: { 
+              path: "work_history", 
+              ignore_unmapped: true, 
+              query: { 
+                query_string: { 
+                  query: keyword, 
+                  fields: workHistorySearchFields, 
+                  default_operator: "AND"
+                } 
+              },
+              boost: 0.1 
+            } 
+          });
+          keywordShouldClauses.push({ 
+            nested: { 
+              path: "education", 
+              ignore_unmapped: true, 
+              query: { 
+                query_string: { 
+                  query: keyword, 
+                  fields: educationSearchFields, 
+                  default_operator: "AND"
+                } 
+              },
+              boost: 0.1 
+            } 
+          });
         
-          // --- English Levels Filter (supports explicit levels + Unknown) ---
+          mustClauses.push({
+            bool: {
+              should: keywordShouldClauses
+            }
+          });
+        }
+        
         const rawEnglishLevels = normalizeArray(input.english_levels)
           .map(x => String(x).trim())
           .filter(x => x.length > 0);
@@ -436,7 +690,6 @@ query "search/candidates_stats" verb=POST {
         if (explicitEnglishLevels.length > 0 || includeUnknownEnglish) {
           const englishShould = [];
         
-          // Known levels (e.g., ["Native","Advanced"]) => nested match on English + level
           if (explicitEnglishLevels.length > 0) {
             englishShould.push({
               nested: {
@@ -455,7 +708,6 @@ query "search/candidates_stats" verb=POST {
           }
         
           if (includeUnknownEnglish) {
-            // Case 1: Has English entry but no level
             englishShould.push({
               nested: {
                 path: "languages",
@@ -468,7 +720,7 @@ query "search/candidates_stats" verb=POST {
                 }
               }
             });
-            // Case 2: No English entry at all
+        
             englishShould.push({
               bool: {
                 must_not: [
@@ -487,172 +739,67 @@ query "search/candidates_stats" verb=POST {
           mustClauses.push({ bool: { should: englishShould, minimum_should_match: 1 } });
         }
         
-        // Minimum years of experience filter
-          if (typeof input.min_year_of_experience === 'number' && input.min_year_of_experience > 0) {
-            mustClauses.push({
-              range: {
-                total_experience_years: { gte: input.min_year_of_experience }
-              }
-            });
-          }
-        
-          // Maximum years of experience filter (accept both max_years_of_experience and max_year_of_experience)
-          const _maxYearsRaw = (input.max_years_of_experience ?? input.max_year_of_experience);
-          const maxYears = (typeof _maxYearsRaw === 'string') ? parseFloat(_maxYearsRaw) : _maxYearsRaw;
-          const _minYearsRaw = input.min_year_of_experience;
-          const minYears = (typeof _minYearsRaw === 'string') ? parseFloat(_minYearsRaw) : _minYearsRaw;
-        
-          // If both present and crossed, normalize by swapping
-          let _minGte = (typeof minYears === 'number' && isFinite(minYears) && minYears > 0) ? minYears : null;
-          let _maxLte = (typeof maxYears === 'number' && isFinite(maxYears) && maxYears > 0) ? maxYears : null;
-          if (_minGte != null && _maxLte != null && _minGte > _maxLte) {
-            const tmp = _minGte; _minGte = _maxLte; _maxLte = tmp;
-          }
-          if (_maxLte != null) {
-            mustClauses.push({ range: { total_experience_years: { lte: _maxLte } } });
-          }
-        
-          // Country filter
-          if (input.country && typeof input.country === 'string' && input.country.trim() !== '') {
-            mustClauses.push({ term: { "country": input.country } });
-          }
-        
-          // Keyword search filter (public fields, matching query_builder.js)
-          if (typeof input.keyword_search === 'string' && input.keyword_search.trim() !== '') {
-            const keyword = input.keyword_search.trim();
-            mustClauses.push({
-              bool: {
-                should: [
-                  // Common public fields
-                  {
-                    query_string: {
-                      query: keyword,
-                      fields: [
-                        'headline_role',
-                        'role_summary',
-                        'technical_summary',
-                        'city'
-                      ],
-                      default_operator: 'AND'
-                    }
-                  },
-                  // Work history nested (public fields)
-                  {
-                    nested: {
-                      path: 'work_history',
-                      query: {
-                        query_string: {
-                          query: keyword,
-                          fields: [
-                            'work_history.role',
-                            'work_history.duties',
-                            'work_history.skills_used',
-                            'work_history.description'
-                          ],
-                          default_operator: 'AND'
-                        }
-                      }
-                    }
-                  },
-                  // Education nested (public fields)
-                  {
-                    nested: {
-                      path: 'education',
-                      query: {
-                        query_string: {
-                          query: keyword,
-                          fields: [
-                            'education.degree',
-                            'education.degree_level'
-                          ],
-                          default_operator: 'AND'
-                        }
-                      }
-                    }
-                  }
-                ]
-              }
-            });
-          }
-        
-          // Build the bool query with minimum_should_match when there are should clauses
-          const requireShould = Boolean(input.require_should_match);
-          const boolQuery = (shouldClauses.length > 0 && requireShould)
-            ? { must: mustClauses, should: shouldClauses, minimum_should_match: 1 }
-            : (shouldClauses.length > 0
-                ? { must: mustClauses, should: shouldClauses }
-                : { must: mustClauses });
-        
-          // Build the query object
-          let query = {
-            size: 0,
-            query: { bool: boolQuery },
-            aggs: {
-              by_country: {
-                terms: { field: "country", size: 10 }
-              },
-              by_experience: {
-                range: {
-                  field: "total_experience_years",
-                  ranges: [
-                    { key: "Junior", from: 0, to: 2 },
-                    { key: "Semi Senior", from: 2, to: 5 },
-                    { key: "Senior", from: 5, to: 10 },
-                    { key: "Senior +", from: 10 }
-                  ]
-                }
-              },
-              // English levels aggregation (kept for parity with previous stats output)
-              langs: {
-                nested: { path: "languages" },
-                aggs: {
-                  english_only: {
-                    filter: { term: { "languages.language": "English" } },
-                    aggs: {
-                      levels: {
-                        terms: { field: "languages.level", size: 10 }
-                      }
-                    }
-                  }
-                }
-              },
-              top_skills: {
-                nested: { path: "skills" },
-                aggs: {
-                  skills_names: {
-                    terms: { field: "skills.skill", size: 20 }
-                  }
-                }
-              },
-              total_candidates: {
-                value_count: { field: "id" }
-              }
+        const rawHideIds = normalizeArray(input.hide_ids)
+          .map(x => String(x).trim())
+          .filter(x => x.length > 0);
+        const hideIds = [];
+        const hideIdsSeen = new Set();
+        for (const id of rawHideIds) {
+          if (!hideIdsSeen.has(id)) {
+            hideIdsSeen.add(id);
+            hideIds.push(id);
+            if (hideIds.length === 10000) {
+              break;
             }
-          };
-        
-          return query;
+          }
+        }
+        if (hideIds.length > 0) {
+          mustNotClauses.push({ terms: { _id: hideIds } });
         }
         
-        // Debug: Output the generated query (remove/comment in production)
-        // console.log(JSON.stringify(buildStatsQuery(input), null, 2));
+        if (isPrivate && input.email && typeof input.email === 'string' && input.email.trim() !== '') {
+          const emailValue = input.email.trim();
+          mustClauses.push({
+            bool: {
+              should: [
+                { term: { "email.keyword": emailValue } },
+                { match_phrase: { "email": emailValue } }
+              ]
+            }
+          });
+        }
         
-        return buildStatsQuery(input);
+        let notesFilter = null;
+        if (typeof input.notes === 'string') {
+          notesFilter = input.notes.trim().toLowerCase();
+        } else if (input.notes && typeof input.notes === 'object' && typeof input.notes.value === 'string') {
+          notesFilter = input.notes.value.trim().toLowerCase();
+        }
+        if (notesFilter === 'only_notes') {
+          mustClauses.push({ exists: { field: "notes" } });
+        } else if (notesFilter === 'no_notes') {
+          mustClauses.push({
+            bool: {
+              must_not: [ { exists: { field: "notes" } } ]
+            }
+          });
+        }
+        
+        return {
+          size: 0,
+          query: { bool: query.query.bool },
+          aggs: aggregations
+        };
         """
       timeout = 10
     } as $es_query
   
-    cloud.elasticsearch.query {
-      auth_type = "API Key"
-      key_id = "mwmxdlijah"
-      access_key = "pofdbdrvb3"
-      region = ""
-      index = "candidates"
-      payload = `$es_query`
-      size = ""
-      from = ""
-      sort = []
-      included_fields = []
-      return_type = "search"
+    function.run "elastic_search/search_query" {
+      input = {
+        index      : "candidates"
+        payload    : $es_query
+        return_type: "search"
+      }
     } as $candidates_stats
   }
 
@@ -660,7 +807,7 @@ query "search/candidates_stats" verb=POST {
 
   test "multiple skills" {
     input = {
-      skills                : []|push:({}|set:"name":"Java"|set:"min_months":24)|push:({}|set:"name":"React"|set:"min_months":36)
+      skills                : []
       max_salary            : 5000
       min_year_of_experience: 5
       city                  : "Bogota"

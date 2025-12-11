@@ -1,4 +1,4 @@
-function search_candidates_in_es {
+function search_prospects_in_es {
   input {
     // The candidate skills we want to search
     object[] must_skills? {
@@ -28,11 +28,14 @@ function search_candidates_in_es {
     // the country where the candidate should be located
     text country? filters=trim
   
+    // optional list of acceptable countries (OR logic)
+    text[] countries? filters=trim
+  
     // what page to get
-    int page?
+    int page?=1
   
     // the amount of items per page
-    int item_per_page?
+    int item_per_page?=20
   
     text keyword_search? filters=trim
     text? id? filters=trim
@@ -82,7 +85,7 @@ function search_candidates_in_es {
             "total_experience_years", "languages", "salary_aspiration", "country",
             "manatal_profile", "manatal_id", "work_history", "education"
         ];
-        const PRIVATE_SOURCE_FIELDS = ["first_name", "last_name", "linkedin_profile", "github_profile", "city", "email", "phone_number","apollo_data", "notes","old_system_notes"];
+        const PRIVATE_SOURCE_FIELDS = ["first_name", "last_name", "linkedin_profile", "github_profile", "city", "email", "phone_number", "apollo_data", "notes"];
         const PUBLIC_SOURCE_FIELDS = ["public_name"];
         
         // --- 2. Validate & Normalize Inputs ---
@@ -113,6 +116,10 @@ function search_candidates_in_es {
         
         // Normalize arrays that may arrive as single values
         const normalizeArray = (v) => Array.isArray(v) ? v : (v == null ? [] : [v]);
+        
+        const normalizedCountries = normalizeArray($input.countries ?? $input.country)
+          .map(v => typeof v === 'string' ? v.trim() : '')
+          .filter(v => v.length > 0);
         
         // --- 3. Determine if Recruiter/Private Access ---
         let isPrivate = false;
@@ -165,8 +172,8 @@ function search_candidates_in_es {
         }
         initialMustClauses.push({ range: { "total_experience_years": experienceRange } });
         
-        if ($input.country && typeof $input.country === 'string' && $input.country.trim() !== '') {
-            initialMustClauses.push({ term: { "country": $input.country } });
+        if (normalizedCountries.length > 0) {
+            initialMustClauses.push({ terms: { "country": normalizedCountries } });
         }
         
         let query = {
@@ -417,7 +424,7 @@ function search_candidates_in_es {
           if (!hideIdsSeen.has(id)) {
             hideIdsSeen.add(id);
             hideIds.push(id);
-            if (hideIds.length === 1000) {
+            if (hideIds.length === 10000) {
               break;
             }
           }
@@ -481,18 +488,16 @@ function search_candidates_in_es {
       timeout = 10
     } as $es_query
   
-    cloud.elasticsearch.query {
-      auth_type = "API Key"
-      key_id = "mwmxdlijah"
-      access_key = "pofdbdrvb3"
-      region = ""
-      index = "candidates"
-      payload = `$es_query`
-      size = $input.item_per_page
-      from = $input.page
-      sort = []
-      included_fields = []
-      return_type = "search"
+    function.run "elastic_search/search_query" {
+      input = {
+        index          : "prospects"
+        payload        : $es_query
+        size           : $input.item_per_page
+        from           : $input.page
+        sort           : []
+        included_fields: []
+        return_type    : "search"
+      }
     } as $x1
   
     // Calcualte score and transform fields for public and private info

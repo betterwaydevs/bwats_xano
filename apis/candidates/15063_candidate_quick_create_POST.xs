@@ -160,15 +160,12 @@ query "candidate/quick_create" verb=POST {
           error = "Unable to build Elasticsearch payload for candidate"
         }
       
-        cloud.elasticsearch.document {
-          auth_type = "API Key"
-          key_id = $env.es_key_id
-          access_key = $env.es_access_key
-          region = ""
-          method = "POST"
-          index = "candidates"
-          doc_id = ""
-          doc = $candidate_es_doc
+        function.run "elastic_search/document" {
+          input = {
+            index : "candidates"
+            method: "POST"
+            doc   : $candidate_es_doc
+          }
         } as $candidate_es_create
       
         precondition ($candidate_es_create != null && $candidate_es_create != 404) {
