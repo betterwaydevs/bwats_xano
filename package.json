@@ -1,7 +1,11 @@
 {
-"scripts": {
-    "lint:xano": "xanoscript-lint xano",
-"test:api": "hurl --variable TEST_USER_EMAIL=\\\"$TEST_USER_EMAIL\\\" --variable TEST_USER_PASSWORD=\\\"$TEST_USER_PASSWORD\\\" --variable TEST_RUN_SUFFIX=\\\"$TEST_RUN_SUFFIX\\\" tests/*.hurl",
+  "scripts": {
+    "lint:xano": "LINT_FILES=$(git ls-files -m -o --exclude-standard apis functions addons tables tasks | grep '\\\\.xs$' || true); if [ -z \"$LINT_FILES\" ]; then echo 'No .xs changes to lint'; else NODE_OPTIONS=--experimental-specifier-resolution=node npx xs-lint --server /workspace/.vscode/extensions/xano.xanoscript/extension/language-server/server.js $LINT_FILES; fi",
+    "lint:xano:all": "NODE_OPTIONS=--experimental-specifier-resolution=node npx xs-lint --server /workspace/.vscode/extensions/xano.xanoscript/extension/language-server/server.js",
+    "test:api": "hurl --variable TEST_USER_EMAIL=\\\"$TEST_USER_EMAIL\\\" --variable TEST_USER_PASSWORD=\\\"$TEST_USER_PASSWORD\\\" tests/*.hurl",
     "check": "npm run lint:xano && npm run test:api"
+  },
+  "devDependencies": {
+    "xanoscript-lint": "^0.0.3"
   }
 }

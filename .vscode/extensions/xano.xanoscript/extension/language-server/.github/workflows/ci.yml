@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  xanoscript-language:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - name: Install language dependencies
+        run: |
+          npm install
+
+      - name: Lint language server
+        run: |
+          npm run lint
+
+      - name: Test language server
+        run: |
+          npm test

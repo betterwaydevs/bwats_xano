@@ -1,0 +1,6 @@
+[submodule "language-server"]
+	path = language-server
+	url = git@github.com:xano-labs/xs-language-server.git
+[submodule "src/docs"]
+	path = src/docs
+	url = git@github.com:xano-labs/xanoscript-ai-documentation.git

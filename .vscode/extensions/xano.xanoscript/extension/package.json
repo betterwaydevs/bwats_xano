@@ -1,0 +1,790 @@
+{
+  "name": "xanoscript",
+  "displayName": "XanoScript",
+  "publisher": "xano",
+  "icon": "resources/marketplace-icon.jpeg",
+  "main": "./dist/extension.js",
+  "description": "Syntax highlighting, validation, and productivity tools for XanoScript (.xs files) a domain-specific language to code and manage your Xano workspaces efficiently in VS Code.",
+  "version": "0.4.3",
+  "engines": {
+    "vscode": "^1.96.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/xano-labs/vscode-xs"
+  },
+  "activationEvents": [],
+  "languageServer": {
+    "id": "xanoscript-language-server",
+    "command": "node",
+    "args": [
+      "./dist/server.js"
+    ]
+  },
+  "contributes": {
+    "languageModelTools": [
+      {
+        "name": "get_all_xano_tables",
+        "when": "xano.enabled",
+        "displayName": "Get All Tables in your workspace",
+        "canBeReferencedInPrompt": true,
+        "icon": "$(database)",
+        "toolReferenceName": "get_all_xano_tables",
+        "userDescription": "Retrieve all tables in your workspace",
+        "modelDescription": "Fetches all database tables, their id, name, description and schema in the connected Xano workspace. Useful when you need to understand the structure of your database or asked to create some record in the database."
+      },
+      {
+        "name": "get_objects_specification",
+        "when": "xano.enabled",
+        "displayName": "Get All Objects in your workspace",
+        "canBeReferencedInPrompt": true,
+        "icon": "$(layers)",
+        "toolReferenceName": "get_objects_specification",
+        "userDescription": "Retrieve all objects in your workspace",
+        "modelDescription": "Scan the local codebase for all objects of a specified category (functions, tables, api_group...). This is a preferred method for exploring different names and their invocation requirements (or schema for tables). This is useful for understanding which object can be referenced in other tools or fixing call input requirements.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "category": {
+              "type": "string",
+              "description": "The category of objects to retrieve (query for api endpoints)",
+              "anyOf": [
+                {
+                  "type": "string",
+                  "enum": [
+                    "function",
+                    "tool",
+                    "api",
+                    "api_group",
+                    "table",
+                    "agent",
+                    "mcp_server",
+                    "middleware",
+                    "realtime_channel",
+                    "tasks",
+                    "addons",
+                    "all"
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "batch_add_records_to_xano_table",
+        "when": "xano.enabled",
+        "displayName": "Batch Add Records to Table",
+        "canBeReferencedInPrompt": true,
+        "icon": "$(insert)",
+        "toolReferenceName": "batch_add_records_to_xano_table",
+        "userDescription": "Batch add records to a specific table",
+        "modelDescription": "Adds multiple records to a specified table in the connected Xano workspace. Returns the IDs of the newly created records. This is useful in combination with the get_all_xano_tables tool to seed data into a table.",
+        "inputSchema": {
+          "type": "object",
+          "required": [
+            "tableId",
+            "rows"
+          ],
+          "properties": {
+            "tableId": {
+              "type": "number",
+              "description": "The ID of the table to add records to"
+            },
+            "rows": {
+              "type": "array",
+              "description": "An array of objects representing records to add",
+              "items": {
+                "type": "object"
+              }
+            },
+            "invocationMessage": {
+              "type": "string",
+              "description": "The invocation message displayed to the user for confirmation and during the operation"
+            },
+            "dataSource": {
+              "type": "string",
+              "description": "The data source of the table to add records to, use 'live' unless specified otherwise"
+            }
+          }
+        }
+      },
+      {
+        "name": "generate_xanoscript_crud_endpoint",
+        "when": "xano.enabled",
+        "displayName": "Generate CRUD Api Endpoint",
+        "canBeReferencedInPrompt": true,
+        "toolReferenceName": "generate_xanoscript_crud_endpoint",
+        "userDescription": "Create a CRUD API endpoint for a specific table",
+        "modelDescription": "Generates a CRUD API endpoint template for a specified table in the database. Use this tool to quickly scaffold out standard create, read, update, and delete operations for a given table within an API group in your Xano workspace.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "apiGroup": {
+              "type": "string",
+              "description": "The name of the API group where the crud should be created"
+            },
+            "table": {
+              "type": "string",
+              "description": "The name of the table to create the CRUD function for"
+            },
+            "action": {
+              "type": "string",
+              "description": "The category of the CRUD function",
+              "anyOf": [
+                {
+                  "type": "string",
+                  "enum": [
+                    "create",
+                    "read",
+                    "list",
+                    "delete",
+                    "update"
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "name": "upload_static_files_to_xano",
+        "when": "xano.enabled",
+        "displayName": "Upload Static Content",
+        "canBeReferencedInPrompt": true,
+        "toolReferenceName": "upload_static_files_to_xano",
+        "icon": "$(file-zip)",
+        "userDescription": "Upload static files to the workspace",
+        "modelDescription": "Uploads all files from the workspace's static/ directory to the connected Xano workspace, making them available for public access online. Use this tool to deploy a website with any of its static assets such as images, scripts, or stylesheets to your Xano environment. It is required to have an index.html file in the static directory for the website to be accepted by Xano. After uploading content, show a link to the deployed site.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "A freeform name for this version of the static content"
+            },
+            "description": {
+              "type": "string",
+              "description": "description of what changed in this version of the static content"
+            }
+          }
+        }
+      },
+      {
+        "name": "get_xano_api_specifications",
+        "when": "xano.enabled",
+        "displayName": "Get Backend API Specification",
+        "canBeReferencedInPrompt": true,
+        "toolReferenceName": "get_xano_api_specifications",
+        "icon": "$(book)",
+        "userDescription": "Retrieve the backend API specifications",
+        "modelDescription": "Fetches the OpenAPI specification for API endpoints provided by the backend. This tool should be used when building webpages that consume the Xano backend."
+      },
+      {
+        "name": "push_all_changes_to_xano",
+        "when": "xano.enabled",
+        "displayName": "Push All Changes to Xano",
+        "canBeReferencedInPrompt": true,
+        "toolReferenceName": "push_all_changes_to_xano",
+        "icon": "$(cloud-upload)",
+        "userDescription": "Push all changes to Xano",
+        "modelDescription": "Pushes all changes from the local workspace to the connected Xano workspace. Use this tool to save all changes made in the Xano environment."
+      },
+      {
+        "name": "generate_xano_api_sdk",
+        "when": "false",
+        "displayName": "Generate Xano API SDK",
+        "canBeReferencedInPrompt": true,
+        "toolReferenceName": "generate_xano_api_sdk",
+        "icon": "$(code)",
+        "userDescription": "Generate the Xano API SDK for your frontend",
+        "modelDescription": "Generates a TypeScript SDK for the API endpoints defined in the connected Xano workspace. Use this tool to create a client library that can be used in frontend applications to interact with the Xano backend services.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "outputDir": {
+              "type": "string",
+              "description": "The output directory (relative to the workspace) where the SDK files will be generated"
+            }
+          }
+        }
+      },
+      {
+        "name": "push_current_file_to_xano",
+        "when": "xano.enabled",
+        "displayName": "Push Current File to Xano",
+        "canBeReferencedInPrompt": true,
+        "toolReferenceName": "push_current_file_to_xano",
+        "icon": "$(cloud-upload)",
+        "userDescription": "Push the current file to Xano",
+        "modelDescription": "Pushes the currently open file in the editor to the connected Xano workspace. Use this tool to save changes made to a specific file in the Xano environment.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "description": "The absolute path of the file to push to Xano"
+            }
+          }
+        }
+      }
+    ],
+    "viewsWelcome": [
+      {
+        "view": "welcome",
+        "when": "!xano.enabled",
+        "contents": "In order to use Xanoscript features, you'll need to login with an access token and initialize your current workspace.\n[Get Started](command:xanoscript.login)\n[Create Xano Account](command:xanoscript.signup)\nTo learn more about how to use our XanoScript control in VS Code [read our docs](https://docs.xano.com/xanoscript/vs-code)."
+      }
+    ],
+    "grammars": [
+      {
+        "language": "xanoscript",
+        "scopeName": "source.xanoscript",
+        "path": "./syntaxes/xanoscript.tmLanguage.json"
+      }
+    ],
+    "configuration": {
+      "type": "object",
+      "title": "XanoScript Configuration",
+      "properties": {
+        "xanoscript.xanoUrl": {
+          "type": "string",
+          "default": "https://app.xano.com",
+          "description": "The xano root URL."
+        },
+        "xanoscript.tablePrimaryKeyType": {
+          "type": "string",
+          "default": "int",
+          "description": "The default key type for tables.",
+          "enum": [
+            "int",
+            "uuid"
+          ]
+        },
+        "xanoscript.mergeOnPush": {
+          "type": "boolean",
+          "default": true,
+          "description": "Merge changes when pushing to Xano. When off, pushes will always overwrite remote changes."
+        },
+        "xanoscript.draftMode": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable draft mode to push every change as a draft. When off, changes will be published on push."
+        },
+        "xanoscript.selfHosted": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable this if you are using a self-hosted version of Xano."
+        },
+        "xanoscript.idPrefix": {
+          "type": "boolean",
+          "default": true,
+          "description": "Prefix filenames with their unique Xano ID to avoid name conflicts when pulling objects."
+        }
+      }
+    },
+    "snippets": [
+      {
+        "language": "xanoscript",
+        "path": "./dist/xanoscript.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "xanoscript.setupAgentInstructions",
+        "when": "xano.enabled",
+        "title": "Setup Agent Instructions",
+        "category": "XanoScript",
+        "icon": "$(bot)"
+      },
+      {
+        "command": "xanoscript.stashChanges",
+        "when": "xano.enabled",
+        "title": "Stash Changes",
+        "category": "XanoScript"
+      },
+      {
+        "command": "xanoscript.uploadStatic",
+        "when": "xano.enabled",
+        "title": "Upload Static Files",
+        "category": "XanoScript",
+        "icon": "$(upload)"
+      },
+      {
+        "command": "xanoscript.applyStash",
+        "when": "xano.enabled",
+        "title": "Apply Stashed Changes",
+        "category": "XanoScript"
+      },
+      {
+        "command": "xanoscript.selectInstance",
+        "title": "Select instance",
+        "category": "XanoScript",
+        "icon": "$(server-environment)"
+      },
+      {
+        "command": "xanoscript.selectWorkspace",
+        "title": "Select workspace",
+        "category": "XanoScript",
+        "icon": "$(repo)"
+      },
+      {
+        "command": "xanoscript.selectBranch",
+        "title": "Change branch",
+        "category": "XanoScript",
+        "icon": "$(git-branch)"
+      },
+      {
+        "command": "xanoscript.createWorkflowTest",
+        "title": "New Workflow Test",
+        "when": "xano.enabled",
+        "category": "XanoScript",
+        "icon": "$(new-file)"
+      },
+      {
+        "command": "xanoscript.createApiEndpoint",
+        "title": "New API Endpoint",
+        "when": "xano.enabled",
+        "category": "XanoScript",
+        "icon": "$(new-file)"
+      },
+      {
+        "command": "xanoscript.generateCrudEndpoint",
+        "title": "Generate a CRUD API Endpoint",
+        "when": "xano.enabled",
+        "category": "XanoScript",
+        "icon": "$(gear)"
+      },
+      {
+        "command": "xanoscript.createTable",
+        "title": "New Table",
+        "when": "xano.enabled",
+        "category": "XanoScript",
+        "icon": "$(new-file)"
+      },
+      {
+        "command": "xanoscript.createAddon",
+        "title": "New Addon",
+        "when": "xano.enabled",
+        "category": "XanoScript",
+        "icon": "$(new-file)"
+      },
+      {
+        "command": "xanoscript.createTask",
+        "title": "New Task",
+        "when": "xano.enabled",
+        "category": "XanoScript",
+        "icon": "$(new-file)"
+      },
+      {
+        "command": "xanoscript.createApiGroup",
+        "title": "New API Group",
+        "when": "xano.enabled",
+        "category": "XanoScript",
+        "icon": "$(new-folder)"
+      },
+      {
+        "command": "xanoscript.createCustomFunction",
+        "title": "New Custom Function",
+        "when": "xano.enabled",
+        "category": "XanoScript",
+        "icon": "$(new-file)"
+      },
+      {
+        "command": "xanoscript.createAgent",
+        "title": "New Agent",
+        "when": "xano.enabled",
+        "category": "XanoScript",
+        "icon": "$(new-file)"
+      },
+      {
+        "command": "xanoscript.createMcpServer",
+        "title": "New MCP Server",
+        "category": "XanoScript",
+        "when": "xano.enabled",
+        "icon": "$(new-file)"
+      },
+      {
+        "command": "xanoscript.createTableTrigger",
+        "title": "New Table Trigger",
+        "when": "xano.enabled",
+        "category": "XanoScript",
+        "icon": "$(new-file)"
+      },
+      {
+        "command": "xanoscript.createAgentTrigger",
+        "title": "New Agent Trigger",
+        "when": "xano.enabled",
+        "category": "XanoScript",
+        "icon": "$(new-file)"
+      },
+      {
+        "command": "xanoscript.createMcpServerTrigger",
+        "title": "New MCP Server Trigger",
+        "when": "xano.enabled",
+        "category": "XanoScript",
+        "icon": "$(new-file)"
+      },
+      {
+        "command": "xanoscript.createMiddleware",
+        "title": "New Middleware",
+        "when": "xano.enabled",
+        "category": "XanoScript",
+        "icon": "$(new-file)"
+      },
+      {
+        "command": "xanoscript.createRealtimeChannel",
+        "title": "New Realtime Channel",
+        "when": "xano.enabled",
+        "category": "XanoScript",
+        "icon": "$(new-file)"
+      },
+      {
+        "command": "xanoscript.createRealtimeTrigger",
+        "when": "xano.enabled",
+        "title": "New Realtime Trigger",
+        "category": "XanoScript",
+        "icon": "$(new-file)"
+      },
+      {
+        "command": "xanoscript.initConfig",
+        "title": "Reinitialize XanoScript Config",
+        "category": "XanoScript",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "xanoscript.signup",
+        "title": "Sign Up for Xano",
+        "category": "XanoScript",
+        "icon": "$(account)"
+      },
+      {
+        "command": "xanoscript.login",
+        "title": "Login to Xano",
+        "category": "XanoScript",
+        "icon": "$(account)"
+      },
+      {
+        "command": "xanoscript.discardChanges",
+        "when": "xano.enabled",
+        "title": "Discard Changes",
+        "category": "XanoScript",
+        "icon": "$(discard)"
+      },
+      {
+        "command": "xanoscript.openChangedFile",
+        "title": "Open File",
+        "category": "XanoScript",
+        "icon": "$(go-to-file)"
+      },
+      {
+        "command": "xanoscript.stageRecord",
+        "title": "Stage current file",
+        "category": "XanoScript",
+        "icon": "$(plus)"
+      },
+      {
+        "command": "xanoscript.viewChangeDiff",
+        "title": "View changes",
+        "category": "XanoScript",
+        "icon": "$(diff)"
+      },
+      {
+        "command": "xanoscript.viewRemoteDiff",
+        "title": "View conflicts",
+        "category": "XanoScript",
+        "icon": "$(diff)"
+      },
+      {
+        "command": "xanoscript.unStageRecord",
+        "title": "Unstage current file",
+        "category": "XanoScript",
+        "icon": "$(remove)"
+      },
+      {
+        "command": "xanoscript.unstageAllRecords",
+        "title": "Unstage all files",
+        "category": "XanoScript",
+        "icon": "$(diff-removed)"
+      },
+      {
+        "command": "xanoscript.resetAndPull",
+        "title": "Reset this workspace to latest changes",
+        "category": "XanoScript",
+        "icon": "$(sync)"
+      },
+      {
+        "command": "xanoscript.stageAllRecords",
+        "title": "stage all changed files",
+        "category": "XanoScript",
+        "icon": "$(diff-added)"
+      },
+      {
+        "command": "xanoscript.refreshChanges",
+        "title": "Refresh Changes",
+        "category": "XanoScript",
+        "icon": "$(sync)"
+      },
+      {
+        "command": "xanoscript.pushChanges",
+        "title": "Push Stage Changes to Xano",
+        "category": "XanoScript",
+        "icon": "$(repo-push)"
+      },
+      {
+        "command": "xanoscript.pushFileChanges",
+        "title": "Push Current File Changes to Xano",
+        "category": "XanoScript",
+        "icon": "$(repo-push)"
+      },
+      {
+        "command": "xanoscript.pullChanges",
+        "title": "Pull latest changes from Xano",
+        "category": "XanoScript",
+        "icon": "$(repo-pull)"
+      },
+      {
+        "command": "xanoscript.runTests",
+        "title": "Run Tests",
+        "category": "XanoScript",
+        "icon": "$(beaker)"
+      }
+    ],
+    "languages": [
+      {
+        "id": "xanoscript",
+        "aliases": [
+          "XanoScript",
+          "xanoscript",
+          "xs"
+        ],
+        "extensions": [
+          ".xs"
+        ],
+        "configuration": "./language-configuration.json",
+        "icon": {
+          "light": "./resources/xanoscript-icon.svg",
+          "dark": "./resources/xanoscript-icon.svg"
+        }
+      }
+    ],
+    "semanticTokenScopes": [
+      {
+        "language": "xanoscript",
+        "scopes": {
+          "singleString": [
+            "string.quoted.single.xanoscript"
+          ],
+          "doubleString": [
+            "string.quoted.double.xanoscript"
+          ],
+          "tripleString": [
+            "string.quoted.triple.xanoscript"
+          ],
+          "tripleMacro": [
+            "macro"
+          ]
+        }
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "xanoscript-view",
+          "title": "XanoScript",
+          "icon": "resources/xanoscript-icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "xanoscript-view": [
+        {
+          "id": "welcome",
+          "name": "Let's Get Started",
+          "icon": "$(home)",
+          "when": "!xano.enabled"
+        },
+        {
+          "id": "workspace",
+          "name": "Workspaces",
+          "icon": "$(database)",
+          "when": "xano.enabled"
+        },
+        {
+          "id": "changes",
+          "name": "Changes",
+          "icon": "$(git-compare)",
+          "when": "xano.enabled"
+        },
+        {
+          "id": "files",
+          "name": "Tools",
+          "when": "xano.enabled",
+          "icon": "$(file-submodule)",
+          "type": "webview"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "xanoscript.refreshChanges",
+          "when": "view == changes",
+          "group": "navigation@5"
+        },
+        {
+          "command": "xanoscript.pushChanges",
+          "when": "view == changes",
+          "group": "navigation@4"
+        },
+        {
+          "command": "xanoscript.pullChanges",
+          "when": "view == changes",
+          "group": "navigation@3"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "xanoscript.createCustomFunction",
+          "when": "viewItem == root-folder-functions",
+          "group": "inline"
+        },
+        {
+          "command": "xanoscript.createTable",
+          "when": "viewItem == root-folder-tables",
+          "group": "inline"
+        },
+        {
+          "command": "xanoscript.createTask",
+          "when": "viewItem == root-folder-tasks",
+          "group": "inline"
+        },
+        {
+          "command": "xanoscript.createApiGroup",
+          "when": "viewItem == root-folder-apis",
+          "group": "inline"
+        },
+        {
+          "command": "xanoscript.stageAllRecords",
+          "when": "viewItem == change-folder-changed",
+          "group": "inline"
+        },
+        {
+          "command": "xanoscript.unstageAllRecords",
+          "when": "viewItem == change-folder-staged",
+          "group": "inline"
+        },
+        {
+          "command": "xanoscript.createApiEndpoint",
+          "when": "viewItem == api-group-item",
+          "group": "inline"
+        },
+        {
+          "command": "xanoscript.createWorkflowTest",
+          "when": "viewItem == root-folder-workflowTests",
+          "group": "inline"
+        },
+        {
+          "command": "xanoscript.openChangedFile",
+          "when": "viewItem == changedFile",
+          "group": "inline"
+        },
+        {
+          "command": "xanoscript.discardChanges",
+          "when": "viewItem == changedFile",
+          "group": "inline"
+        },
+        {
+          "command": "xanoscript.stageRecord",
+          "when": "viewItem == changedFile",
+          "group": "inline"
+        },
+        {
+          "command": "xanoscript.openChangedFile",
+          "when": "viewItem == stagedFile",
+          "group": "inline"
+        },
+        {
+          "command": "xanoscript.unStageRecord",
+          "when": "viewItem == stagedFile",
+          "group": "inline"
+        },
+        {
+          "command": "xanoscript.createMcpServer",
+          "when": "viewItem == root-folder-mcpServers",
+          "group": "inline"
+        },
+        {
+          "command": "xanoscript.createAgent",
+          "when": "viewItem == root-folder-agents",
+          "group": "inline"
+        },
+        {
+          "command": "xanoscript.createTableTrigger",
+          "when": "viewItem == root-folder-tableTriggers",
+          "group": "inline"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "pretest": "npm run build",
+    "test": "export VSCODE_TEST=true && vscode-test",
+    "lint": "eslint src --ext .ts",
+    "snippets": "ts-node src/snippets/build.ts",
+    "build": "tsc -p ./",
+    "prepackage": "npm run snippets",
+    "precompile": "npm run snippets",
+    "compile": "npm run check-types && node esbuild.js",
+    "check-types": "tsc --noEmit",
+    "watch": "npm-run-all -p watch:*",
+    "watch:esbuild": "node esbuild.js --watch",
+    "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
+    "vscode:prepublish": "npm run package",
+    "package": "npm run check-types && node esbuild.js --production",
+    "build-patch": "npm version patch && vsce package"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.22.0",
+    "@hey-api/openapi-ts": "0.86.1",
+    "@types/assert": "^1.5.11",
+    "@types/diff": "^7.0.0",
+    "@types/lodash": "^4.17.14",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^22.10.6",
+    "@types/sinon": "^17.0.4",
+    "@types/sinon-chai": "^4.0.0",
+    "@types/vscode": "^1.96.0",
+    "@vscode/test-cli": "^0.0.10",
+    "@vscode/test-electron": "^2.4.1",
+    "@vscode/vsce": "^3.6.0",
+    "assert": "^2.1.0",
+    "esbuild": "^0.25.1",
+    "eslint": "^9.22.0",
+    "globals": "^16.0.0",
+    "npm-run-all": "^4.1.5",
+    "sinon": "^20.0.0",
+    "typescript": "^5.5.3",
+    "typescript-eslint": "^8.27.0",
+    "webpack": "^5.98.0",
+    "webpack-cli": "^6.0.1"
+  },
+  "dependencies": {
+    "@vscode/extension-telemetry": "^1.2.0",
+    "@zip.js/zip.js": "2.7.72",
+    "chevrotain": "^11.0.3",
+    "lodash": "^4.17.21",
+    "lodash-es": "^4.17.21",
+    "node-diff3": "^3.2.0",
+    "node-fetch": "^3.3.2",
+    "redux": "^5.0.1",
+    "sinon-chai": "^4.0.1",
+    "ts-node": "^10.9.2",
+    "vscode-languageclient": "^9.0.1",
+    "vscode-languageserver": "^9.0.1",
+    "vscode-languageserver-textdocument": "^1.0.12"
+  }
+}

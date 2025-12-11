@@ -1,0 +1,134 @@
+{
+  "name": "XanoScript",
+  "scopeName": "source.xanoscript",
+  "fileTypes": [".xs"],
+  "patterns": [
+    {
+      "include": "#embedded-javascript"
+    },
+    {
+      "name": "comment.line.double-slash.xanoscript",
+      "match": "^[ ]*//.*$"
+    },
+    {
+      "name": "keyword.control.xanoscript",
+      "match": "\\b(index|schema|input|stack|response|access|function|if|elseif|else|each|as|try|catch|finally|query|verb|task|workflow_test|schedule|filters|table)\\b"
+    },
+    {
+      "name": "entity.name.type",
+      "match": "\\b(!int|!array|!text|!expr|!decimal|!object|!timestamp|!bool|int|timestamp|text|uuid|vector|enum|date|bool|decimal|email|password|json|file|object|image|video|audio|attachment)\\b"
+    },
+    {
+      "name": "support.function.xanoscript",
+      "match": "\\b(values|storage|create_image|create_attachment|read_file_resource|create_file_resource|read_file|delete_file|sign_private_url|zip|add_to_archive|create_archive|delete_from_archive|extract|view_contents|run|check_password|create_password|create_uuid|create_auth_token|create_curve_key|create_rsa_key|create_secret_key|decrypt|encrypt|generate_pass|generate_uuid|jwe_decode|jwe_encode|jws_decode|jws_encode|random_bytes|random_number|security|conditional|foreach|for|remove|await|return|switch|case|default|while|group|throw|break|continue|try_catch|util|geo_distance|get_all_input|get_env|get_input|get_vars|ip_lookup|post_process|precondition|set_header|sleep|trim|lower|upper|min|max|strlen|startsWith|prevent|alpha|digitOk|ok|pattern|@|api|request|realtime_event|stream|lambda|microservice|array|every|filter_count|filter|find_index|find|has|merge|pop|push|shift|unshift|cloud|algolia|google|aws|elasticsearch|azure|get_file_info|list_directory|s3|sign_url|upload_file|opensearch|document|db|get|add|delete|edit|update|patch|transaction|truncate|direct_query|set_datasource|bulk|external|mssql|mysql|postgres|oracle|redis|count|decr|del|incr|keys|range|ratelimit|set|entries|from_csv|from_jsonl|from_request|debug|stop|log|var|math|div|mod|mul|sub|bitwise|and|or|xor)\\b"
+    },
+    {
+      "name": "keyword.operator.xanoscript",
+      "match": ">=|>|<=|<|-|\\+|==|="
+    },
+    {
+      "name": "variable.other.enummember",
+      "match": "\\b(true|false|null|now|public|private|GET|PATCH|POST|PUT|DELETE|\\$var|\\$input|\\$env|\\$auth|\\$remote_ip|\\$remote_port|\\$remote_user|\\$remote_passwd|\\$remote_host)\\b"
+    },
+    {
+      "name": "macro",
+      "match": "\\/.*\\/"
+    },
+    {
+      "name": "constant.numeric.xanoscript",
+      "match": "-?\\d+|-?\\d+\\.\\d+"
+    },
+    {
+      "name": "string.quoted.triple.xanoscript",
+      "begin": "\"\"\"\\n",
+      "end": "\\n?[ ]*\"\"\"",
+      "patterns": [
+        {
+          "match": ".[\\s\\S]*?(?=\\n?[ ]*\"\"\")",
+          "name": "string.quoted.triple.xanoscript"
+        },
+        {
+          "name": "constant.character.escape.xanoscript",
+          "match": "\\\\."
+        }
+      ]
+    },
+    {
+      "name": "string.quoted.triple.xanoscript",
+      "begin": "'''\\n",
+      "end": "\\n?[ ]*'''",
+      "patterns": [
+        {
+          "match": ".[\\s\\S]*?(?=\\n?[ ]*''')",
+          "name": "string.quoted.triple.xanoscript"
+        },
+        {
+          "name": "constant.character.escape.xanoscript",
+          "match": "\\\\."
+        }
+      ]
+    },
+    {
+      "name": "entity.name.function.preprocessor",
+      "begin": "```\\n",
+      "end": "\\n?[ ]*```",
+      "patterns": [
+        {
+          "match": ".[\\s\\S]*?(?=\\n?[ ]*```)",
+          "name": "entity.name.function.preprocessor"
+        },
+        {
+          "name": "constant.character.escape.xanoscript",
+          "match": "\\\\."
+        }
+      ]
+    },
+    {
+      "name": "string.quoted.double.xanoscript",
+      "match": "\"(?:[^\"\\\\]|\\\\.)*\"",
+      "captures": {
+        "0": { "name": "string.quoted.single.xanoscript" }
+      }
+    },
+    {
+      "name": "string.quoted.single.xanoscript",
+      "match": "'(?:[^'\\\\]|\\\\.)*'",
+      "captures": {
+        "0": { "name": "string.quoted.single.xanoscript" }
+      }
+    },
+    {
+      "name": "entity.name.function.preprocessor",
+      "match": "`([^`\\\\]|\\\\.)*`"
+    },
+    {
+      "name": "support.function",
+      "match": "\\b(append|contains|ends_with|icontains|iends_with|istarts_with|ltrim|prepend|rtrim|starts_with)\\b"
+    },
+    {
+      "name": "variable.other.xanoscript",
+      "match": "[a-zA-Z]\\w*(\\/[a-zA-Z]\\w*)+|dbo=\\d+|value|type|field|auth|guid|return_aggregate|sensitive|tags|description|disabled|events|starts_on|ends_on|freq|\\$this|\\$[a-zA-Z]\\w*|[a-zA-Z]\\w*"
+    }
+  ],
+  "repository": {
+    "embedded-javascript": {
+      "name": "meta.embedded.block.javascript",
+      "begin": "(code)\\s*(=)\\s*(\"\"\")",
+      "beginCaptures": {
+        "1": { "name": "variable.other.xanoscript" },
+        "2": { "name": "keyword.operator.xanoscript" },
+        "3": { "name": "punctuation.definition.string.begin.xanoscript" }
+      },
+      "end": "(\"\"\")",
+      "endCaptures": {
+        "1": { "name": "punctuation.definition.string.end.xanoscript" }
+      },
+      "contentName": "source.js.embedded.xanoscript",
+      "patterns": [
+        {
+          "include": "source.js"
+        }
+      ]
+    }
+  }
+}

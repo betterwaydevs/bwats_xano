@@ -1,0 +1,37 @@
+{
+  "name": "xanscript-language",
+  "version": "11.0.3",
+  "type": "module",
+  "scripts": {
+    "test-one": "mocha",
+    "test": "mocha \"**/*.spec.js\"",
+    "test-alt": "NODE_OPTIONS=\"--trace-warnings\" mocha --loader node \"*/**/*.spec.js\"",
+    "lint": "eslint . --ext .js",
+    "lint:fix": "eslint . --ext .js --fix",
+    "tm": "node ./toTmLanguage.js",
+    "prepare": "husky"
+  },
+  "dependencies": {
+    "chai": "^5.2.0",
+    "chevrotain": "^11.0.3",
+    "lodash-es": "^4.17.21",
+    "mocha": "^11.1.0",
+    "vscode-languageserver": "^9.0.1",
+    "vscode-languageserver-textdocument": "^1.0.12"
+  },
+  "lint-staged": {
+    "*.js": [
+      "eslint --fix"
+    ]
+  },
+  "private": true,
+  "devDependencies": {
+    "@eslint/js": "^9.22.0",
+    "eslint": "^9.22.0",
+    "eslint-plugin-simple-import-sort": "^12.1.1",
+    "eslint-plugin-unused-imports": "^4.2.0",
+    "globals": "^16.0.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.4"
+  }
+}

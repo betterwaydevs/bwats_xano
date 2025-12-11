@@ -1,35 +1,156 @@
 function "candidates/candidate_quick_create_btach" {
   input {
-    text linkedin_profile filters=trim
     int project_id filters=min:1
     int stage_id filters=min:1
-    text first_name filters=trim
-    text last_name filters=trim
-    text email? filters=trim|lower
+    json candidates
   }
 
   stack {
-    // Section A – Input preparation
-    group {
-      stack {
-        precondition ($input.linkedin_profile != null && $input.linkedin_profile != "") {
-          error_type = "inputerror"
-          error = "Missing param: linkedin_profile"
+    var $candidates_input {
+      value = ($input.candidates != null ? ($input.candidates|json_decode) : [])
+    }
+
+    var $total_candidates {
+      value = ($candidates_input != null ? ($candidates_input|count) : 0)
+    }
+
+    var $results {
+      value = []
+    }
+
+    var $summary {
+      value = {
+        total_processed: $total_candidates
+        created_count  : 0
+        assigned_count : 0
+        failed_count   : 0
+      }
+    }
+
+    var $effective_added_by_user_id {
+      value = $auth.id
+    }
+
+    db.get project {
+      field_name = "id"
+      field_value = $input.project_id
+    } as $project
+
+    precondition ($project != null) {
+      error_type = "notfound"
+      error = "Project not found"
+    }
+
+    db.get stage {
+      field_name = "id"
+      field_value = $input.stage_id
+    } as $stage
+
+    precondition ($stage != null) {
+      error_type = "notfound"
+      error = "Stage not found"
+    }
+
+    precondition ($stage.project_id == $project.id) {
+      error_type = "badrequest"
+      error = "Stage does not belong to supplied project"
+    }
+
+    foreach ($candidates_input) {
+      each as $candidate_item {
+        var $candidate_display_profile {
+          value = ($candidate_item.linkedin_profile != null ? $candidate_item.linkedin_profile : "")
         }
-      
-        precondition ($input.first_name != null && $input.first_name != "") {
-          error_type = "inputerror"
-          error = "Missing param: first_name"
+
+        var $raw_linkedin_profile {
+          value = ($candidate_display_profile != "" ? ($candidate_display_profile|trim) : "")
         }
-      
-        precondition ($input.last_name != null && $input.last_name != "") {
-          error_type = "inputerror"
-          error = "Missing param: last_name"
+
+        conditional {
+          if ($raw_linkedin_profile == "") {
+            var.update $summary {
+              value = $summary
+                |set:"failed_count":($summary.failed_count + 1)
+            }
+          
+            var.update $results {
+              value = $results
+                |push:```
+                  {
+                    status          : "failed"
+                    linkedin_profile: $candidate_display_profile
+                    error           : "Missing param: linkedin_profile"
+                  }
+                  ```
+            }
+          
+            continue
+          }
         }
-      
+
+        var $candidate_first_name {
+          value = ($candidate_item.first_name != null ? ($candidate_item.first_name|trim) : "")
+        }
+
+        conditional {
+          if ($candidate_first_name == "") {
+            var.update $summary {
+              value = $summary
+                |set:"failed_count":($summary.failed_count + 1)
+            }
+          
+            var.update $results {
+              value = $results
+                |push:```
+                  {
+                    status          : "failed"
+                    linkedin_profile: $candidate_display_profile
+                    error           : "Missing param: first_name"
+                  }
+                  ```
+            }
+          
+            continue
+          }
+        }
+
+        var $candidate_last_name {
+          value = ($candidate_item.last_name != null ? ($candidate_item.last_name|trim) : "")
+        }
+
+        conditional {
+          if ($candidate_last_name == "") {
+            var.update $summary {
+              value = $summary
+                |set:"failed_count":($summary.failed_count + 1)
+            }
+          
+            var.update $results {
+              value = $results
+                |push:```
+                  {
+                    status          : "failed"
+                    linkedin_profile: $candidate_display_profile
+                    error           : "Missing param: last_name"
+                  }
+                  ```
+            }
+          
+            continue
+          }
+        }
+
+        var $candidate_email {
+          value = ($candidate_item.email != null ? ($candidate_item.email|trim) : "")
+        }
+
+        var $linkedin_payload {
+          value = $raw_linkedin_profile
+        }
+
         api.lambda {
           code = """
-              const rawUrl = ($input.linkedin_profile || '').trim();
+              const rawUrl = ($var.linkedin_payload || '').trim();
               if (!rawUrl) {
                 return { error: 'LinkedIn profile is required' };
               }
@@ -56,216 +177,300 @@ function "candidates/candidate_quick_create_btach" {
             """
           timeout = 10
         } as $linkedin_validation
-      
-        precondition ($linkedin_validation.error == null) {
-          error_type = "inputerror"
-          error = $linkedin_validation.error
+
+        conditional {
+          if ($linkedin_validation.error != null) {
+            var.update $summary {
+              value = $summary
+                |set:"failed_count":($summary.failed_count + 1)
+            }
+          
+            var.update $results {
+              value = $results
+                |push:```
+                  {
+                    status          : "failed"
+                    linkedin_profile: $candidate_display_profile
+                    error           : $linkedin_validation.error
+                  }
+                  ```
+            }
+          
+            continue
+          }
         }
-      
+
         var $normalized_linkedin_profile {
           value = $linkedin_validation.normalized_url
         }
-      
+
         var $linkedin_slug {
           value = $linkedin_validation.slug
         }
-      
-        var $effective_added_by_user_id {
-          value = $auth.id
-        }
-      }
-    }
-  
-    // Section B – Pre-flight validation
-    group {
-      stack {
-        db.get stage {
-          field_name = "id"
-          field_value = $input.stage_id
-        } as $stage
-      
-        precondition ($stage != null) {
-          error_type = "notfound"
-          error = "Stage not found"
-        }
-      
-        precondition ($stage.project_id == $input.project_id) {
-          error_type = "badrequest"
-          error = "Stage does not belong to supplied project"
-        }
-      
-        db.get project {
-          field_name = "id"
-          field_value = $input.project_id
-        } as $project
-      
-        precondition ($project != null) {
-          error_type = "notfound"
-          error = "Project not found"
-        }
-      
-        db.query parsed_candidate {
-          where = $db.parsed_candidate.linkedin_profile includes $linkedin_slug || $db.parsed_candidate.linkedin_profile == $normalized_linkedin_profile
-          return = {type: "single"}
-          output = ["id", "elastic_search_document_id", "linkedin_profile"]
-        } as $existing_candidate
-      
-        precondition ($existing_candidate == null) {
-          error_type = "inputerror"
-          error = "Candidate already exists for provided LinkedIn profile"
-          payload = {
-            type                      : "candidate"
-            candidate_id              : $existing_candidate.id
-            elastic_search_document_id: $existing_candidate.elastic_search_document_id
-          }
-        }
-      
-        db.query parsed_prospect {
-          where = $db.parsed_prospect.linkedin_profile includes $linkedin_slug || $db.parsed_prospect.linkedin_profile == $normalized_linkedin_profile
-          return = {type: "single"}
-          output = ["id", "elastic_search_document_id", "linkedin_profile"]
-        } as $existing_prospect
-      
-        precondition ($existing_prospect == null) {
-          error_type = "inputerror"
-          error = "Prospect already exists for provided LinkedIn profile"
-          payload = {
-            type                      : "prospect"
-            prospect_id               : $existing_prospect.id
-            elastic_search_document_id: $existing_prospect.elastic_search_document_id
-          }
-        }
-      }
-    }
-  
-    // Section C – Persistence Pipeline
-    group {
-      stack {
-        var $candidate_es_doc {
-          value = {}
-            |set:"first_name":$input.first_name
-            |set:"last_name":$input.last_name
-            |set:"linkedin_profile":$normalized_linkedin_profile
-            |set:"linkedin_slug":$linkedin_slug
-        }
-      
-        object.keys {
-          value = $candidate_es_doc
-        } as $candidate_es_doc_fields
-      
-        precondition ($candidate_es_doc_fields != null && $candidate_es_doc_fields.count > 0) {
-          error_type = "badrequest"
-          error = "Unable to build Elasticsearch payload for candidate"
-        }
-      
-        function.run "elastic_search/document" {
-          input = {
-            index : "candidates"
-            method: "POST"
-            doc   : $candidate_es_doc
-          }
-        } as $candidate_es_create
-      
-        precondition ($candidate_es_create != null && $candidate_es_create != 404) {
-          error_type = "badrequest"
-          error = "Failed to create candidate in Elasticsearch"
-        }
-      
-        var $candidate_elastic_search_document_id {
-          value = $candidate_es_create|get:"_id"
-        }
-      
-        precondition ($candidate_elastic_search_document_id != null && $candidate_elastic_search_document_id != "") {
-          error_type = "badrequest"
-          error = "ElasticSearch response missing document id"
-        }
-      
-        conditional {
-          if ($input.email != null && $input.email != "") {
-            db.add parsed_candidate {
-              data = {
-                created_at                : now
-                first_name                : $input.first_name
-                last_name                 : $input.last_name
-                email                     : $input.email
-                linkedin_profile          : $normalized_linkedin_profile
-                elastic_search_document_id: $candidate_elastic_search_document_id
+
+        try_catch {
+          try {
+
+            db.query parsed_candidate {
+              where = $db.parsed_candidate.linkedin_profile includes $linkedin_slug || $db.parsed_candidate.linkedin_profile == $normalized_linkedin_profile
+              return = {type: "single"}
+              output = ["id", "elastic_search_document_id", "linkedin_profile"]
+            } as $existing_candidate
+
+            conditional {
+              if ($existing_candidate != null) {
+                // Association handling for existing candidate
+                db.query project_person_association {
+                  where = $db.project_person_association.project_id == $input.project_id && $db.project_person_association.person_type == "candidate" && $db.project_person_association.person_id == $existing_candidate.id
+                  return = {type: "single"}
+                  output = ["id", "current_stage_id"]
+                } as $existing_association
+
+                conditional {
+                  if ($existing_association == null) {
+                    db.add project_person_association {
+                      data = {
+                        created_at       : "now"
+                        project_id       : $input.project_id
+                        person_id        : $existing_candidate.id
+                        person_type      : "candidate"
+                        current_stage_id : $input.stage_id
+                        updated_at       : now
+                        added_by_user_id : $effective_added_by_user_id
+                        elastic_search_id: $existing_candidate.elastic_search_document_id
+                      }
+                    } as $existing_association
+
+                    function.run association_project_change_stage {
+                      input = {
+                        project_person_association_id: $existing_association.id
+                        activity_type                : "created"
+                        stage_id                     : $input.stage_id
+                        user_id                      : $effective_added_by_user_id
+                      }
+                    } as $assigned_stage_history
+                  }
+                
+                  else {
+                    conditional {
+                      if ($existing_association.current_stage_id != $input.stage_id) {
+                        function.run association_project_change_stage {
+                          input = {
+                            project_person_association_id: $existing_association.id
+                            activity_type                : "stage_change"
+                            stage_id                     : $input.stage_id
+                            user_id                      : $effective_added_by_user_id
+                          }
+                        } as $updated_stage_history
+                      }
+                    }
+                  }
+                }
+
+                var.update $summary {
+                  value = $summary
+                    |set:"assigned_count":($summary.assigned_count + 1)
+                }
+
+                var.update $results {
+                  value = $results
+                    |push:```
+                      {
+                        status           : "assigned"
+                        candidate_id     : $existing_candidate.id
+                        association_id   : $existing_association.id
+                        person_type      : "candidate"
+                        linkedin_profile : $existing_candidate.linkedin_profile
+                      }
+                      ```
+                }
+
+                continue
               }
-            } as $candidate
-          }
-        
-          else {
-            db.add parsed_candidate {
-              data = {
-                created_at                : now
-                first_name                : $input.first_name
-                last_name                 : $input.last_name
-                linkedin_profile          : $normalized_linkedin_profile
-                elastic_search_document_id: $candidate_elastic_search_document_id
+            }
+
+            // Create new candidate
+            var $candidate_es_doc {
+              value = {}
+                |set:"first_name":$candidate_first_name
+                |set:"last_name":$candidate_last_name
+                |set:"linkedin_profile":$normalized_linkedin_profile
+                |set:"linkedin_slug":$linkedin_slug
+            }
+
+            function.run "elastic_search/document" {
+              input = {
+                index : "candidates"
+                method: "POST"
+                doc   : $candidate_es_doc
               }
-            } as $candidate
+            } as $candidate_es_create
+
+            conditional {
+              if ($candidate_es_create == null || $candidate_es_create == 404) {
+                var.update $summary {
+                  value = $summary
+                    |set:"failed_count":($summary.failed_count + 1)
+                }
+              
+                var.update $results {
+                  value = $results
+                    |push:```
+                      {
+                        status          : "failed"
+                        linkedin_profile: $candidate_display_profile
+                        error           : "Failed to create candidate in Elasticsearch"
+                      }
+                      ```
+                }
+              
+                continue
+              }
+            }
+
+            var $candidate_elastic_search_document_id {
+              value = $candidate_es_create|get:"_id"
+            }
+
+            conditional {
+              if ($candidate_elastic_search_document_id == null || $candidate_elastic_search_document_id == "") {
+                var.update $summary {
+                  value = $summary
+                    |set:"failed_count":($summary.failed_count + 1)
+                }
+              
+                var.update $results {
+                  value = $results
+                    |push:```
+                      {
+                        status          : "failed"
+                        linkedin_profile: $candidate_display_profile
+                        error           : "ElasticSearch response missing document id"
+                      }
+                      ```
+                }
+              
+                continue
+              }
+            }
+
+            conditional {
+              if ($candidate_email != "") {
+                db.add parsed_candidate {
+                  data = {
+                    created_at                : now
+                    first_name                : $candidate_first_name
+                    last_name                 : $candidate_last_name
+                    email                     : $candidate_email
+                    linkedin_profile          : $normalized_linkedin_profile
+                    elastic_search_document_id: $candidate_elastic_search_document_id
+                  }
+                } as $candidate
+              }
+            
+              else {
+                db.add parsed_candidate {
+                  data = {
+                    created_at                : now
+                    first_name                : $candidate_first_name
+                    last_name                 : $candidate_last_name
+                    linkedin_profile          : $normalized_linkedin_profile
+                    elastic_search_document_id: $candidate_elastic_search_document_id
+                  }
+                } as $candidate
+              }
+            }
+
+            db.add project_person_association {
+              data = {
+                created_at       : "now"
+                project_id       : $input.project_id
+                person_id        : $candidate.id
+                person_type      : "candidate"
+                current_stage_id : $input.stage_id
+                updated_at       : now
+                added_by_user_id : $effective_added_by_user_id
+                elastic_search_id: $candidate_elastic_search_document_id
+              }
+            } as $new_association
+
+            conditional {
+              if ($new_association == null) {
+                var.update $summary {
+                  value = $summary
+                    |set:"failed_count":($summary.failed_count + 1)
+                }
+              
+                var.update $results {
+                  value = $results
+                    |push:```
+                      {
+                        status          : "failed"
+                        linkedin_profile: $candidate_display_profile
+                        error           : "Failed to create project association"
+                      }
+                      ```
+                }
+              
+                continue
+              }
+            }
+
+            function.run association_project_change_stage {
+              input = {
+                project_person_association_id: $new_association.id
+                activity_type                : "created"
+                stage_id                     : $input.stage_id
+                user_id                      : $effective_added_by_user_id
+              }
+            } as $stage_history
+
+            var.update $summary {
+              value = $summary
+                |set:"created_count":($summary.created_count + 1)
+            }
+
+            var.update $results {
+              value = $results
+                |push:```
+                  {
+                    status           : "created"
+                    candidate_id     : $candidate.id
+                    association_id   : $new_association.id
+                    person_type      : "candidate"
+                    linkedin_profile : $normalized_linkedin_profile
+                  }
+                  ```
+            }
           }
-        }
-      }
-    }
-  
-    // Section D – Association & Stage History
-    group {
-      stack {
-        db.add project_person_association {
-          data = {
-            created_at       : "now"
-            project_id       : $input.project_id
-            person_id        : $candidate.id
-            person_type      : "candidate"
-            current_stage_id : $input.stage_id
-            updated_at       : now
-            added_by_user_id : $effective_added_by_user_id
-            elastic_search_id: $candidate_elastic_search_document_id
+
+          catch {
+            var.update $summary {
+              value = $summary
+                |set:"failed_count":($summary.failed_count + 1)
+            }
+
+            var.update $results {
+              value = $results
+                |push:```
+                  {
+                    status          : "failed"
+                    linkedin_profile: $candidate_display_profile
+                    error           : ($error.message != null ? $error.message : "Failed to process candidate")
+                  }
+                  ```
+            }
           }
-        } as $association
-      
-        precondition ($association != null) {
-          error_type = "badrequest"
-          error = "Failed to create project association"
-        }
-      
-        function.run association_project_change_stage {
-          input = {
-            project_person_association_id: $association.id
-            activity_type                : "created"
-            stage_id                     : $input.stage_id
-            user_id                      : $effective_added_by_user_id
-          }
-        } as $stage_history
-      
-        var $stage_history_id {
-          value = $stage_history|get:"history_id"
         }
       }
     }
   }
 
   response = {
-    candidate       : ```
-      {
-        id                        : $candidate.id
-        elastic_search_document_id: $candidate_elastic_search_document_id
-      }
-      ```
-    association     : ```
-      {
-        id             : $association.id
-        project_id     : $association.project_id
-        current_stage_id: $association.current_stage_id
-      }
-      ```
-    stage_history_id: $stage_history_id
-    statuses        : ```
-      {
-        candidate_created: $candidate != null
-        stage_assigned    : $association != null
-      }
-      ```
+    total_processed: $summary.total_processed
+    created_count  : $summary.created_count
+    assigned_count : $summary.assigned_count
+    failed_count   : $summary.failed_count
+    results        : $results
   }
 }

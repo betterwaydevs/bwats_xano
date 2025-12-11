@@ -1,0 +1,10 @@
+node_modules
+.vscode-test/
+*.vsix
+out/
+.DS_Store
+dist/
+.xano
+xano
+.gitconfig
+.env
