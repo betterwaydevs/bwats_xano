@@ -1,3 +1,7 @@
+{
 "scripts": {
-  "test:api": "hurl tests/*.hurl"
+    "lint:xano": "xanoscript-lint xano",
+    "test:api": "hurl tests/*.hurl",
+    "check": "npm run lint:xano && npm run test:api"
+  }
 }

@@ -1,0 +1,12 @@
+{
+  "servers": {
+    "xano": {
+      "command": "npx",
+      "args": ["xano-mcp-server"],
+      "env": {
+        "XANO_MCP_TOKEN": "${XANO_TOKEN}",
+        "XANO_MCP_WORKSPACE": "development"
+      }
+    }
+  }
+}
