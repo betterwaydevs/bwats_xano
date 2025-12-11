@@ -1,12 +1,12 @@
-# TEMPLATE: agent should copy this and replace values
+# TEMPLATE: copy this file and replace values as needed.
+# Always start by calling the shared login helper so {{authToken}} is available.
 
-POST https://xano.atlanticsoft.co/api:wosIWFpR:development/SOME_ENDPOINT?x-data-source=development
-Content-Type: application/json
+Call ./login.hurl
 
-{
-  "example": "payload"
-}
+GET {{BASE_URL}}/SOME_ENDPOINT?x-data-source=development
+Authorization: Bearer {{authToken}}
 
 HTTP 200
-# Add real assertions:
+# Add a real payload/body if the endpoint requires it.
+# Replace the assertions below with something meaningful for your API.
 # jsonpath "$.something" == "value"
