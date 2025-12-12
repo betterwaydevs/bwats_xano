@@ -1,11 +1,15 @@
 {
-  "servers": {
+  "mcpServers": {
     "xano": {
       "command": "npx",
-      "args": ["xano-mcp-server"],
+      "args": [
+        "mcp-remote",
+        "YOUR_CONNECTION_URL_HERE",
+        "--header",
+        "Authorization:${AUTH_TOKEN}"
+      ],
       "env": {
-        "XANO_MCP_TOKEN": "${XANO_TOKEN}",
-        "XANO_MCP_WORKSPACE": "development"
+        "AUTH_TOKEN": "Bearer ${XANO_MCP_TOKEN}"
       }
     }
   }
