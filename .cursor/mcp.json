@@ -3,13 +3,14 @@
     "xano": {
       "command": "npx",
       "args": [
+        "-y",
         "mcp-remote",
-        "YOUR_CONNECTION_URL_HERE",
+        "https://xano.atlanticsoft.co/x2/mcp/meta/mcp/sse",
         "--header",
         "Authorization:${AUTH_TOKEN}"
       ],
       "env": {
-        "AUTH_TOKEN": "Bearer ${XANO_MCP_TOKEN}"
+        "AUTH_TOKEN": "Bearer ${XANO_TOKEN}"
       }
     }
   }
