@@ -1,5 +1,6 @@
 // Delete candidate_event record
 query "candidate_event/{candidate_event_id}" verb=DELETE {
+  api_group = "candidates"
   auth = "user"
 
   input {

@@ -1,4 +1,6 @@
 query manatal_candidate verb=POST {
+  api_group = "manatal_candidates"
+
   input {
     dblink {
       table = "manatal_candidate"

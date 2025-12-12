@@ -1,5 +1,6 @@
 // Update stage record
 query "stage/{stage_id}" verb=PUT {
+  api_group = "association"
   auth = "user"
 
   input {

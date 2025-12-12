@@ -1,5 +1,7 @@
 // Delete remoteweekly_positions record.
 query "remoteweekly_positions/{remoteweekly_positions_id}" verb=DELETE {
+  api_group = "Default"
+
   input {
     int remoteweekly_positions_id? filters=min:1
   }

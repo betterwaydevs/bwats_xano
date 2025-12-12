@@ -1,5 +1,6 @@
 // Update person_attachment record
 query "person_attachment/{person_attachment_id}" verb=PUT {
+  api_group = "attachments"
   auth = "user"
 
   input {

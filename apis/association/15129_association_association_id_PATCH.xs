@@ -1,5 +1,6 @@
 // Edit project_person_association record
 query "association/{association_id}" verb=PATCH {
+  api_group = "association"
   auth = "user"
 
   input {

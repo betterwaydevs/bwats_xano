@@ -1,4 +1,6 @@
 query "util/bad_elastic_search_id" verb=GET {
+  api_group = "association"
+
   input {
     int page?
     int per_page?

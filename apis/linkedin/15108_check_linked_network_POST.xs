@@ -1,4 +1,6 @@
 query check_linked_network verb=POST {
+  api_group = "linkedin"
+
   input {
     text[] linkedin_connections? filters=trim
   }

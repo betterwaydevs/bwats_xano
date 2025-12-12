@@ -1,4 +1,6 @@
 query "parsed_candidate_info/public/{parsed_candidate_elastic_search_id}/" verb=GET {
+  api_group = "candidates"
+
   input {
     text parsed_candidate_elastic_search_id filters=trim
   }

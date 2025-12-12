@@ -1,4 +1,6 @@
 query "search/update_encoded_url" verb=GET {
+  api_group = "prospects"
+
   input {
     int page?=1
     int per_page?=50

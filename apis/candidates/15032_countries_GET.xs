@@ -1,4 +1,6 @@
 query countries verb=GET {
+  api_group = "candidates"
+
   input {
   }
 

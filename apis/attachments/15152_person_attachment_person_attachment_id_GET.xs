@@ -1,5 +1,6 @@
 // Get single person_attachment record with signed URL for private files
 query "person_attachment/{person_attachment_id}" verb=GET {
+  api_group = "attachments"
   auth = "user"
 
   input {

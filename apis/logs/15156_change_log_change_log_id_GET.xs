@@ -1,5 +1,7 @@
 // Get change_log record
 query "change_log/{change_log_id}" verb=GET {
+  api_group = "logs"
+
   input {
     int change_log_id? filters=min:1
   }

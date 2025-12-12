@@ -1,5 +1,6 @@
 // Get candidate_event record
 query "candidate_event/{candidate_event_id}" verb=GET {
+  api_group = "candidates"
   auth = "user"
 
   input {

@@ -1,5 +1,6 @@
 // Edit company record
 query "company/{company_id}" verb=PATCH {
+  api_group = "association"
   auth = "user"
 
   input {

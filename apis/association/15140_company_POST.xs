@@ -1,5 +1,6 @@
 // Add company record
 query company verb=POST {
+  api_group = "association"
   auth = "user"
 
   input {

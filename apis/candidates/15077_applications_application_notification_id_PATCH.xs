@@ -1,5 +1,7 @@
 // Edit application_notification record
 query "applications/{application_notification_id}" verb=PATCH {
+  api_group = "candidates"
+
   input {
     int application_notification_id? filters=min:1
     dblink {

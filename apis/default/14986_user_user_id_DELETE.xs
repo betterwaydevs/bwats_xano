@@ -1,5 +1,7 @@
 // Delete user record.
 query "user/{user_id}" verb=DELETE {
+  api_group = "Default"
+
   input {
     int user_id? filters=min:1
   }

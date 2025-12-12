@@ -1,4 +1,5 @@
 query "parsed_candidate/{parsed_candidate_id}" verb=PATCH {
+  api_group = "candidates"
   auth = "user"
 
   input {

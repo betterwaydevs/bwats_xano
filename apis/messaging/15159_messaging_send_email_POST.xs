@@ -1,5 +1,6 @@
 // API endpoint to send email messages to prospects and candidates
 query "messaging/send_email" verb=POST {
+  api_group = "messaging"
   auth = "user"
 
   input {

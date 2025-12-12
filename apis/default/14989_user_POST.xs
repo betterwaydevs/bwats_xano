@@ -1,5 +1,7 @@
 // Add user record
 query user verb=POST {
+  api_group = "Default"
+
   input {
     dblink {
       table = "user"

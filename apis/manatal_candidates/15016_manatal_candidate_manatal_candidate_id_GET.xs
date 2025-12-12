@@ -1,4 +1,6 @@
 query "manatal_candidate/{manatal_candidate_id}" verb=GET {
+  api_group = "manatal_candidates"
+
   input {
     int manatal_id filters=min:1
   }

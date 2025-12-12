@@ -1,4 +1,6 @@
 query unparsed_and_lock verb=GET {
+  api_group = "prospects"
+
   input {
   }
 

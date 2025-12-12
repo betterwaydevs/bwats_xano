@@ -1,5 +1,6 @@
 // Query all change_log records
 query change_log verb=GET {
+  api_group = "logs"
   auth = "user"
 
   input {

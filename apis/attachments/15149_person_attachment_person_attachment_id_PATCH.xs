@@ -1,5 +1,6 @@
 // Edit person_attachment record
 query "person_attachment/{person_attachment_id}" verb=PATCH {
+  api_group = "attachments"
   auth = "user"
 
   input {

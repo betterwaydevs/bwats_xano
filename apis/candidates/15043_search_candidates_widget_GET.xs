@@ -1,4 +1,6 @@
 query "search/candidates_widget" verb=GET {
+  api_group = "candidates"
+
   input {
     object[] must_skills? {
       schema

@@ -1,5 +1,6 @@
 // API endpoint to send WhatsApp messages to prospects and candidates
 query "messaging/send_whatsapp_messages" verb=POST {
+  api_group = "messaging"
   auth = "user"
 
   input {

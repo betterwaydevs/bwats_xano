@@ -1,5 +1,6 @@
 // Delete stage record
 query "stage/{stage_id}" verb=DELETE {
+  api_group = "association"
   auth = "user"
 
   input {

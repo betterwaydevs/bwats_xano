@@ -1,0 +1,14 @@
+[33m33960c7[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m, [m[1;31morigin/HEAD[m[33m)[m wip batch create candidates
+[33mf06a490[m mcp config update
+[33m10279e8[m Merge pull request #4 from betterwaydevs/cursor/setup-hurl-login-function-33b4
+[33m43aae88[m feat: Add login helper and update test templates
+[33m5520431[m specs for batch feature
+[33mf07e294[m batch create base
+[33mbc04c79[m agent basis to use xano mcp
+[33m854bece[m xano sync
+[33mc31634d[m Merge pull request #2 from betterwaydevs/cursor/implement-task-from-markdown-file-gpt-5.1-codex-d408
+[33m98d5b03[m test plan
+[33m0ba52f4[m preparing agent to build tests
+[33m27d5388[m basic for agents
+[33mcf819c4[m dev changes made outside of the repo
+[33m94a9fe7[m xano codebase

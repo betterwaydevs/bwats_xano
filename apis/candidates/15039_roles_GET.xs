@@ -1,4 +1,6 @@
 query roles verb=GET {
+  api_group = "candidates"
+
   input {
     enum[] role_type?=candidates {
       values = ["candidates", "prospects", "candidate_prospecting"]

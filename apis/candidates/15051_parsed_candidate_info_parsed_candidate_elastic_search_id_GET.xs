@@ -1,4 +1,5 @@
 query "parsed_candidate_info/{parsed_candidate_elastic_search_id}" verb=GET {
+  api_group = "candidates"
   auth = "user"
 
   input {

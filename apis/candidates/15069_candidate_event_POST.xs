@@ -1,5 +1,6 @@
 // Add candidate_event record
 query candidate_event verb=POST {
+  api_group = "candidates"
   auth = "user"
 
   input {

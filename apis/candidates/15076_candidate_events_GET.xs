@@ -1,5 +1,6 @@
 // Query all candidate_event records
 query candidate_events verb=GET {
+  api_group = "candidates"
   auth = "user"
 
   input {

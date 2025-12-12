@@ -1,5 +1,7 @@
 // Add linkedin_invitation record
 query create_linkedin_invitation verb=POST {
+  api_group = "linkedin"
+
   input {
     dblink {
       table = "linkedin_invitation"

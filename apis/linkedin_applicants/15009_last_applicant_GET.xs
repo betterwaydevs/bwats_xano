@@ -1,4 +1,6 @@
 query last_applicant verb=GET {
+  api_group = "linkedin_applicants"
+
   input {
   }
 

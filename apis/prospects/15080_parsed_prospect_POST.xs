@@ -1,5 +1,7 @@
 // Get prospects by linked in id separed by comma
 query parsed_prospect verb=POST {
+  api_group = "prospects"
+
   input {
     text[] id? filters=trim
   }

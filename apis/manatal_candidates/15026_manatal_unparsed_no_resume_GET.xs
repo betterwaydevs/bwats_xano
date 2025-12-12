@@ -1,4 +1,6 @@
 query manatal_unparsed_no_resume verb=GET {
+  api_group = "manatal_candidates"
+
   input {
     int page?
     int per_page?

@@ -1,4 +1,6 @@
 query get_es_candidates_by_linked verb=POST {
+  api_group = "candidates"
+
   input {
     object[] prospects? {
       schema {

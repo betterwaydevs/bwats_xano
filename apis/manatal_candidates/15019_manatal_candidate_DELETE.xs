@@ -1,4 +1,6 @@
 query manatal_candidate verb=DELETE {
+  api_group = "manatal_candidates"
+
   input {
     int manatal_internal_id filters=min:1
   }

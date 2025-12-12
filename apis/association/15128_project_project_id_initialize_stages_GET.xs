@@ -1,5 +1,6 @@
 // Get project record
 query "project/{project_id}/initialize-stages" verb=GET {
+  api_group = "association"
   auth = "user"
 
   input {

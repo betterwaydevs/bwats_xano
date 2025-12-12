@@ -1,4 +1,6 @@
 query "parsed_prospect/{prospect_elastic_search_id}" verb=GET {
+  api_group = "prospects"
+
   input {
     text prospect_elastic_search_id filters=trim
   }

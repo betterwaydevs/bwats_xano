@@ -1,5 +1,6 @@
 // Edit stage record
 query "stage/{stage_id}" verb=PATCH {
+  api_group = "association"
   auth = "user"
 
   input {

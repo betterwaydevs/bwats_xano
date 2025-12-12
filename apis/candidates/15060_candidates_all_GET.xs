@@ -1,5 +1,6 @@
 // Query all parsed_candidate records
 query "candidates/all" verb=GET {
+  api_group = "candidates"
   auth = "user"
 
   input {

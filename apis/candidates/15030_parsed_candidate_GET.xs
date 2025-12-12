@@ -1,4 +1,6 @@
 query parsed_candidate verb=GET {
+  api_group = "candidates"
+
   input {
     bool not_indexed?
     int page?

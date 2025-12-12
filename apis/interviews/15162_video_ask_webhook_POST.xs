@@ -1,5 +1,7 @@
 // Add video_ask_webhook record
 query video_ask_webhook verb=POST {
+  api_group = "interviews"
+
   input {
   }
 

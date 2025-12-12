@@ -1,5 +1,7 @@
 // Resets the parse_status of prospects from 'parsing' to 'pending'.
 query unparsed_and_lock_reset verb=GET {
+  api_group = "prospects"
+
   input {
   }
 

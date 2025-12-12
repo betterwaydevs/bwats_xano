@@ -1,4 +1,6 @@
 query "prospects/search/by_linkedin" verb=GET {
+  api_group = "prospects"
+
   input {
     text slug? filters=trim
   }

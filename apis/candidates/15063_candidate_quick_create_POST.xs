@@ -1,4 +1,5 @@
 query "candidate/quick_create" verb=POST {
+  api_group = "candidates"
   auth = "user"
 
   input {

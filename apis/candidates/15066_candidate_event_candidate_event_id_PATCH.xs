@@ -1,5 +1,6 @@
 // Edit candidate_event record
 query "candidate_event/{candidate_event_id}" verb=PATCH {
+  api_group = "candidates"
   auth = "user"
 
   input {

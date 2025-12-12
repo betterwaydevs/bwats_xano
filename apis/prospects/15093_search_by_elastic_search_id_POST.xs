@@ -1,4 +1,5 @@
 query "search/by_elastic_search_id" verb=POST {
+  api_group = "prospects"
   auth = "user"
 
   input {

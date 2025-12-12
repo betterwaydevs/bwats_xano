@@ -1,5 +1,6 @@
 // Query all application_notification records 
 query "applications/applicants" verb=GET {
+  api_group = "candidates"
   auth = "user"
 
   input {

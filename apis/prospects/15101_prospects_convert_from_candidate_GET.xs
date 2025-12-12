@@ -1,4 +1,5 @@
 query "prospects/convert_from_candidate" verb=GET {
+  api_group = "prospects"
   auth = "user"
 
   input {

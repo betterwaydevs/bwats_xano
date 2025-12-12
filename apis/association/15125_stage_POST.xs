@@ -1,5 +1,6 @@
 // Add stage record
 query stage verb=POST {
+  api_group = "association"
   auth = "user"
 
   input {

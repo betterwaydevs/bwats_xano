@@ -1,4 +1,6 @@
 query roles verb=POST {
+  api_group = "candidates"
+
   input {
     dblink {
       table = "roles"

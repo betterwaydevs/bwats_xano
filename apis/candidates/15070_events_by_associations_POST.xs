@@ -1,5 +1,6 @@
 // Query all candidate_event records
 query events_by_associations verb=POST {
+  api_group = "candidates"
   auth = "user"
 
   input {

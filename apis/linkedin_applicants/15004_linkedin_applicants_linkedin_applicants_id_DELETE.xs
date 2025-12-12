@@ -1,5 +1,7 @@
 // Delete linkedin_applicants record.
 query "linkedin_applicants/{linkedin_applicants_id}" verb=DELETE {
+  api_group = "linkedin_applicants"
+
   input {
     uuid linkedin_applicants_id?
   }

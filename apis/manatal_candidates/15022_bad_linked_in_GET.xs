@@ -1,4 +1,6 @@
 query bad_linked_in verb=GET {
+  api_group = "manatal_candidates"
+
   input {
   }
 

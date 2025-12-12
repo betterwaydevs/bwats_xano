@@ -1,4 +1,6 @@
 query manatal_unparsed_candidates verb=GET {
+  api_group = "manatal_candidates"
+
   input {
   }
 

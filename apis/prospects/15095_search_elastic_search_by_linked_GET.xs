@@ -1,4 +1,6 @@
 query "search/elastic_search_by_linked" verb=GET {
+  api_group = "prospects"
+
   input {
     text linked_in_profile? filters=trim
   }

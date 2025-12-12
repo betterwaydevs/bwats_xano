@@ -1,5 +1,7 @@
 // Query all user records
 query user verb=GET {
+  api_group = "Default"
+
   input {
   }
 

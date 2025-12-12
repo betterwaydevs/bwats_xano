@@ -1,4 +1,6 @@
 query "search/duplicates" verb=POST {
+  api_group = "candidates"
+
   input {
     int page?=1
     int per_page?=20

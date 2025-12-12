@@ -1,4 +1,6 @@
 query duplicates verb=GET {
+  api_group = "manatal_candidates"
+
   input {
   }
 

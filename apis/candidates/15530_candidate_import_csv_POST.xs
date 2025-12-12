@@ -1,4 +1,5 @@
 query "candidate/import_csv" verb=POST {
+  api_group = "candidates"
   auth = "user"
 
   input {
@@ -36,7 +37,7 @@ query "candidate/import_csv" verb=POST {
   
     precondition ($stage.stage_type == "candidates") {
       error_type = "badrequest"
-      error = "La etapa indicada no es v\303\241lida para candidatos"
+      error = "La etapa indicada no es válida para candidatos"
     }
   
     storage.read_file_resource {
@@ -272,7 +273,7 @@ query "candidate/import_csv" verb=POST {
               value = {
                 name    : $candidate.first_name|concat:" "|concat:$candidate.last_name
                 linkedin: $candidate.linkedin_profile
-                error   : ($error.message != null ? $error.message : "Error al crear candidato")
+                error   : $error.["message != null ? $error"]["Error al crear candidato"]["message : "]
               }
             }
           }

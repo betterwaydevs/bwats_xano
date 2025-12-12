@@ -1,4 +1,6 @@
 query update_manatal_encoded_url verb=GET {
+  api_group = "manatal_candidates"
+
   input {
     int page?=1
     int per_page?=50

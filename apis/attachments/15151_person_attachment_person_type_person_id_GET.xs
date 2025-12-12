@@ -1,5 +1,6 @@
 // Query all person_attachment records
 query "person_attachment/{person_type}/{person_id}" verb=GET {
+  api_group = "attachments"
   auth = "user"
 
   input {

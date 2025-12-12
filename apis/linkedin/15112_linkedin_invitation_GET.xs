@@ -1,5 +1,7 @@
 // Query all linkedin_invitation records
 query linkedin_invitation verb=GET {
+  api_group = "linkedin"
+
   input {
     int user_id?
     int per_page?

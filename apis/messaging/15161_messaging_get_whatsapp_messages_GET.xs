@@ -1,4 +1,5 @@
 query "messaging/get_whatsapp_messages" verb=GET {
+  api_group = "messaging"
   auth = "user"
 
   input {

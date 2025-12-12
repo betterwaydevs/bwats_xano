@@ -1,4 +1,6 @@
 query "search/prospects_stats" verb=POST {
+  api_group = "prospects"
+
   input {
     // The candidate skills we want to search
     object[] must_skills? {

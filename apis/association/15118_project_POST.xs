@@ -1,5 +1,6 @@
 // Add project record
 query project verb=POST {
+  api_group = "association"
   auth = "user"
 
   input {

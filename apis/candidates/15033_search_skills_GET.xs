@@ -1,4 +1,6 @@
 query "search/skills" verb=GET {
+  api_group = "candidates"
+
   input {
   }
 

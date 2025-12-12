@@ -1,4 +1,6 @@
 query "candidate/quick_apply" verb=POST {
+  api_group = "candidates"
+
   input {
     text linkedin_profile filters=trim
     int project_id filters=min:1

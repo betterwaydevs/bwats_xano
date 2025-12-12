@@ -1,4 +1,6 @@
 query candidate_by_manatal_id verb=GET {
+  api_group = "candidates"
+
   input {
     int manatal_id
   }

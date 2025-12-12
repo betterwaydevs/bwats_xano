@@ -1,4 +1,5 @@
 query linked_in_events verb=GET {
+  api_group = "linkedin_applicants"
   auth = "user"
 
   input {

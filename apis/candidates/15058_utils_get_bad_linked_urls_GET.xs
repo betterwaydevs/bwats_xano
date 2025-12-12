@@ -1,4 +1,6 @@
 query "utils/get_bad_linked_urls" verb=GET {
+  api_group = "candidates"
+
   input {
     int page?=1 filters=min:1
     int per_page?=50 filters=min:1|max:500

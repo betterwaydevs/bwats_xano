@@ -1,5 +1,6 @@
 // Query all videask_response records
 query videask_response verb=GET {
+  api_group = "interviews"
   auth = "user"
 
   input {

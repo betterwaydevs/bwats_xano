@@ -1,4 +1,5 @@
 query "candidate/parse_from_resume" verb=POST {
+  api_group = "candidates"
   auth = "user"
 
   input {

@@ -1,4 +1,5 @@
 query "association/person_activity_history/person_type/{person_type}/id/{person_id}" verb=GET {
+  api_group = "association"
   auth = "user"
 
   input {

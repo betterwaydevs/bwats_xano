@@ -1,5 +1,7 @@
 // Find candidates with empty or missing LinkedIn profiles
 query linkedin_empty verb=GET {
+  api_group = "candidates"
+
   input {
     int page?=1
     int per_page?=20

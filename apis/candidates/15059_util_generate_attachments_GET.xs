@@ -1,6 +1,8 @@
 // Utility API to migrate resume attachments from manatal_candidate to person_attachment records
 // Migrate resume attachments from manatal_candidate to person_attachment records using native Xano joins and pagination
 query "util/generate_attachments" verb=GET {
+  api_group = "candidates"
+
   input {
     // Page number for pagination (starts at 1)
     int page?=1 filters=min:1|max:1000

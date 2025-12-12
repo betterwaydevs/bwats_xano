@@ -1,5 +1,6 @@
 // Delete parsed_prospect record
 query "parsed_prospect/{parsed_prospect_id}" verb=DELETE {
+  api_group = "prospects"
   auth = "user"
 
   input {

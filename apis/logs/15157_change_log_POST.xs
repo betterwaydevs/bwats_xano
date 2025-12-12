@@ -1,5 +1,7 @@
 // Add change_log record
 query change_log verb=POST {
+  api_group = "logs"
+
   input {
     dblink {
       table = "change_log"

@@ -1,5 +1,7 @@
 // Query all linkedin_applicants records
 query linkedin_applicants verb=GET {
+  api_group = "linkedin_applicants"
+
   input {
   }
 

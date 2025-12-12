@@ -1,4 +1,6 @@
 query search verb=POST {
+  api_group = "apollo"
+
   input {
     object prospects? {
       schema {

@@ -1,4 +1,5 @@
 query "search/prospects" verb=POST {
+  api_group = "prospects"
   auth = "user"
 
   input {

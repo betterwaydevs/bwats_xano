@@ -1,5 +1,6 @@
 // Delete project record
 query "project/{project_id}" verb=DELETE {
+  api_group = "association"
   auth = "user"
 
   input {

@@ -1,5 +1,6 @@
 // Delete parsed_prospect record
 query "candidates/{candidate_id}" verb=DELETE {
+  api_group = "candidates"
   auth = "user"
 
   input {

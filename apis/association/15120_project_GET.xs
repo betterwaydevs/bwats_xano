@@ -1,5 +1,7 @@
 // Query all project records
 query project verb=GET {
+  api_group = "association"
+
   input {
     enum? status? {
       values = ["active", "closed"]

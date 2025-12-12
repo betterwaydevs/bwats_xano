@@ -1,5 +1,7 @@
 // Edit parsed_prospect record
 query "temp_n8n_parsed_prospect/{parsed_prospect_id}" verb=PATCH {
+  api_group = "prospects"
+
   input {
     int parsed_prospect_id? filters=min:1
     dblink {

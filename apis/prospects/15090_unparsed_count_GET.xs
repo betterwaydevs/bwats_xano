@@ -1,4 +1,6 @@
 query unparsed_count verb=GET {
+  api_group = "prospects"
+
   input {
   }
 

@@ -1,4 +1,6 @@
 query "manatal_candidate/{manatal_id}" verb=DELETE {
+  api_group = "candidates"
+
   input {
     int manatal_candidate_id? filters=min:1
   }

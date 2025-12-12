@@ -1,4 +1,6 @@
 query update_candidate_prospect verb=POST {
+  api_group = "prospects"
+
   input {
     dblink {
       table = "parsed_prospect"

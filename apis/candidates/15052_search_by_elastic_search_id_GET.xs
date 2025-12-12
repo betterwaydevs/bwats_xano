@@ -1,4 +1,5 @@
 query "search/by_elastic_search_id" verb=GET {
+  api_group = "candidates"
   auth = "user"
 
   input {

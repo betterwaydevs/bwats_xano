@@ -1,5 +1,6 @@
 // Update project record
 query "project/{project_id}" verb=PUT {
+  api_group = "association"
   auth = "user"
 
   input {

@@ -1,4 +1,6 @@
 query validate_existing_connections verb=POST {
+  api_group = "linkedin"
+
   input {
     object[] connections? {
       schema {

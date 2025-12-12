@@ -1,5 +1,6 @@
 // Query all company records
 query company verb=GET {
+  api_group = "association"
   auth = "user"
 
   input {

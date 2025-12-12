@@ -1,8 +1,10 @@
 query visitor verb=GET {
+  api_group = "sales"
+
   input {
-    text utm_campaign?=" " filters=trim
-    text utm_medium?=" " filters=trim
-    text utm_source?=" " filters=trim
+    text utm_campaign?=" " filters=!trim
+    text utm_medium?=" " filters=!trim
+    text utm_source?=" " filters=!trim
   }
 
   stack {

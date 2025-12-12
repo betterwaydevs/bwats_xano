@@ -1,5 +1,7 @@
 // Add person_attachment record
 query "public/add_resume" verb=POST {
+  api_group = "attachments"
+
   input {
     // Public-facing application identifier returned by quick apply
     text application_id filters=trim

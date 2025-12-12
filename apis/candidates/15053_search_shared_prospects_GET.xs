@@ -1,5 +1,7 @@
 // Returns prospect/candidate pairs that share a linked recruit profile ID using a single paginated query.
 query "search/shared_prospects" verb=GET {
+  api_group = "candidates"
+
   input {
     int page?=1 filters=min:1
     int per_page?=50 filters=min:1|max:500

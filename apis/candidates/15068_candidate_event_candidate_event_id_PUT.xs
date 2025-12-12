@@ -1,5 +1,6 @@
 // Update candidate_event record
 query "candidate_event/{candidate_event_id}" verb=PUT {
+  api_group = "candidates"
   auth = "user"
 
   input {

@@ -1,5 +1,7 @@
 // Signup and retrieve an authentication token
 query "auth/signup" verb=POST {
+  api_group = "Default"
+
   input {
     text name?
     email email?

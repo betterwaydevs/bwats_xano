@@ -64,5 +64,5 @@ function "elastic_search/bulk" {
     } as $response
   }
 
-  response = $""
+  response = $
 }

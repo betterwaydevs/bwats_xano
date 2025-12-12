@@ -1,5 +1,6 @@
 // Get project_person_association record
 query "association/{association_id}" verb=GET {
+  api_group = "association"
   auth = "user"
 
   input {

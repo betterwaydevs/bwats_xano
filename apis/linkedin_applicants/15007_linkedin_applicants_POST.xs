@@ -1,5 +1,7 @@
 // Add linkedin_applicants record
 query linkedin_applicants verb=POST {
+  api_group = "linkedin_applicants"
+
   input {
     dblink {
       table = "linkedin_applicants"

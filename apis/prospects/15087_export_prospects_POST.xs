@@ -1,4 +1,5 @@
 query "export/prospects" verb=POST {
+  api_group = "prospects"
   auth = "user"
 
   input {

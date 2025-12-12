@@ -1,4 +1,6 @@
 query "public/roles" verb=GET {
+  api_group = "candidates"
+
   input {
   }
 

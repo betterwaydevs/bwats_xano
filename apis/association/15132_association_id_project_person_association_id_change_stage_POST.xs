@@ -1,5 +1,6 @@
 // Update project_person_association record
 query "association/id/{project_person_association_id}/change-stage" verb=POST {
+  api_group = "association"
   auth = "user"
 
   input {

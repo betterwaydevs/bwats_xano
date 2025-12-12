@@ -1,4 +1,6 @@
 query locations verb=GET {
+  api_group = "manatal_candidates"
+
   input {
     bool is_america?
   }

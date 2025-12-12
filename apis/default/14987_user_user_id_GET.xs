@@ -1,5 +1,7 @@
 // Get user record
 query "user/{user_id}" verb=GET {
+  api_group = "Default"
+
   input {
     int user_id? filters=min:1
   }

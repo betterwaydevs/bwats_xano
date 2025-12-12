@@ -1,4 +1,6 @@
 query create_prospect_from_html verb=POST {
+  api_group = "prospects"
+
   input {
     text profile_id? filters=trim
     text linked_url? filters=trim

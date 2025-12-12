@@ -1,4 +1,6 @@
 query "count/quick_normalized_prospects" verb=GET {
+  api_group = "prospects"
+
   input {
   }
 

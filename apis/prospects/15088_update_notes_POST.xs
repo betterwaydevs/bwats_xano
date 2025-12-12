@@ -1,4 +1,5 @@
 query update_notes verb=POST {
+  api_group = "prospects"
   auth = "user"
 
   input {

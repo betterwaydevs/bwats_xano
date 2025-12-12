@@ -1,4 +1,6 @@
 query "manatal_candidate/{manatal_candidate_id}" verb=PATCH {
+  api_group = "manatal_candidates"
+
   input {
     int unique_manatal_id? filters=min:1
     dblink {

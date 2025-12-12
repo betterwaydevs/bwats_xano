@@ -1,4 +1,6 @@
 query "IMPORTLEADS/BATCH" verb=POST {
+  api_group = "Default"
+
   input {
   }
 

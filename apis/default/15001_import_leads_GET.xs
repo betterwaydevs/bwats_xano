@@ -1,4 +1,6 @@
 query importLeads verb=GET {
+  api_group = "Default"
+
   input {
     int page
     text position filters=trim

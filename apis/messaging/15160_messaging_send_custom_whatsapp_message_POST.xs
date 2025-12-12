@@ -1,4 +1,5 @@
 query "messaging/send_custom_whatsapp_message" verb=POST {
+  api_group = "messaging"
   auth = "user"
 
   input {

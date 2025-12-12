@@ -1,5 +1,7 @@
 // Public company detail (limited fields)
 query "company/public/{company_id}" verb=GET {
+  api_group = "association"
+
   input {
     int company_id? filters=min:1
   }
@@ -18,7 +20,7 @@ query "company/public/{company_id}" verb=GET {
     var $response_body {
       value = {
         id              : $company.id
-        display_name    : ($company.display_name != null && $company.display_name != "" ? $company.display_name : $company.name)
+        display_name    : $company["display_name != null && $company"].["display_name !=  ? $company"]["display_name : $company"].name
         description_html: $company.description_html
         logo            : null
         website         : null

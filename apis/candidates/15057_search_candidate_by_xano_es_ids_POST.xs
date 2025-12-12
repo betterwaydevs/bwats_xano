@@ -1,4 +1,5 @@
 query "search/candidate_by_xano_es_ids" verb=POST {
+  api_group = "candidates"
   auth = "user"
 
   input {

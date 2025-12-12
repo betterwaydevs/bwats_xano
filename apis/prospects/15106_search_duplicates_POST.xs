@@ -1,4 +1,5 @@
 query "search/duplicates" verb=POST {
+  api_group = "prospects"
   auth = "user"
 
   input {

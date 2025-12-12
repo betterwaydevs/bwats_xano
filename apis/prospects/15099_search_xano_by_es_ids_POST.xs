@@ -1,4 +1,5 @@
 query "search/xano_by_es_ids" verb=POST {
+  api_group = "prospects"
   auth = "user"
 
   input {

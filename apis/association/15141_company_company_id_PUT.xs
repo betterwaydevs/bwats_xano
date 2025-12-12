@@ -1,5 +1,6 @@
 // Update company record
 query "company/{company_id}" verb=PUT {
+  api_group = "association"
   auth = "user"
 
   input {

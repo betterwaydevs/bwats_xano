@@ -1,5 +1,7 @@
 // Add remoteweekly_leads record
 query remoteweekly_leads verb=POST {
+  api_group = "Default"
+
   input {
     dblink {
       table = "remoteweekly_leads"

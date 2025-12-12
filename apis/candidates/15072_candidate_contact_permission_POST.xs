@@ -1,5 +1,7 @@
 // Add candidate_contact_permission record
 query candidate_contact_permission verb=POST {
+  api_group = "candidates"
+
   input {
     dblink {
       table = "candidate_contact_permission"

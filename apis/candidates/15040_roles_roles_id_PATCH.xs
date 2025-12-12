@@ -1,4 +1,6 @@
 query "roles/{roles_id}" verb=PATCH {
+  api_group = "candidates"
+
   input {
     int roles_id? filters=min:1
     dblink {

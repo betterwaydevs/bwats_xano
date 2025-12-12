@@ -1,4 +1,6 @@
 query linkedin_connections verb=GET {
+  api_group = "linkedin"
+
   input {
     int user_id?
     int per_page?

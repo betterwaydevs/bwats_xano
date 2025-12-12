@@ -1,4 +1,5 @@
 query "prospects/batch_quick_normalize" verb=POST {
+  api_group = "prospects"
   auth = "user"
 
   input {

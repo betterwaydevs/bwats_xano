@@ -1,5 +1,6 @@
 // Add project_person_association record
 query "association/project/{project_id}/people" verb=POST {
+  api_group = "association"
   auth = "user"
 
   input {

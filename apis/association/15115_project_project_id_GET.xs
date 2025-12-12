@@ -1,5 +1,7 @@
 // Get project record
 query "project/{project_id}" verb=GET {
+  api_group = "association"
+
   input {
     int project_id? filters=min:1
   }

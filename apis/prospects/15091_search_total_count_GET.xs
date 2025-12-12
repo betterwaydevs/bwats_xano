@@ -1,4 +1,6 @@
 query "search/total_count" verb=GET {
+  api_group = "prospects"
+
   input {
   }
 

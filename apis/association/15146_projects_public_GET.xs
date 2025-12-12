@@ -1,5 +1,7 @@
 // Query all project records
 query "projects/public" verb=GET {
+  api_group = "association"
+
   input {
     int per_page?
     int page?
@@ -57,7 +59,7 @@ query "projects/public" verb=GET {
               value = {
                 id        : $item._company.id
                 name      : (($item._company.display_name != null && $item._company.display_name != "") ? $item._company.display_name : $item._company.name)
-                is_visible: ($item._company.is_visible == true)
+                is_visible: $item._company["is_visible == true"]
               }
             }
           }

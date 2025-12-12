@@ -1,5 +1,6 @@
 // Add person_attachment record
 query person_attachment verb=POST {
+  api_group = "attachments"
   auth = "user"
 
   input {

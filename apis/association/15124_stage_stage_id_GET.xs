@@ -1,5 +1,6 @@
 // Get stage record
 query "stage/{stage_id}" verb=GET {
+  api_group = "association"
   auth = "user"
 
   input {

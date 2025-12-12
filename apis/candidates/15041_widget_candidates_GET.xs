@@ -1,4 +1,6 @@
 query "widget/candidates" verb=GET {
+  api_group = "candidates"
+
   input {
     text role? filters=trim
   }

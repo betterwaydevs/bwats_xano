@@ -1,4 +1,6 @@
 query validate_existing_invitations verb=POST {
+  api_group = "linkedin"
+
   input {
     object[] connections? {
       schema {

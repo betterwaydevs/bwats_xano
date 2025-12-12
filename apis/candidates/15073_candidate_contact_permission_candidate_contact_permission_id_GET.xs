@@ -1,5 +1,7 @@
 // Get candidate_contact_permission record
 query "candidate_contact_permission/{candidate_contact_permission_id}" verb=GET {
+  api_group = "candidates"
+
   input {
     int candidate_contact_permission_id? filters=min:1
   }

@@ -1,5 +1,6 @@
 // Delete person_attachment record
 query "person_attachment/{person_attachment_id}" verb=DELETE {
+  api_group = "attachments"
   auth = "user"
 
   input {

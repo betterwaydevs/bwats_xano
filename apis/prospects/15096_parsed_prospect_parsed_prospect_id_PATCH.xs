@@ -1,5 +1,6 @@
 // Edit parsed_prospect record
 query "parsed_prospect/{parsed_prospect_id}" verb=PATCH {
+  api_group = "prospects"
   auth = "user"
 
   input {

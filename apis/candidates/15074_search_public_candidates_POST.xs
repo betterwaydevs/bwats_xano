@@ -1,4 +1,6 @@
 query "search/public/candidates" verb=POST {
+  api_group = "candidates"
+
   input {
     // The candidate skills we want to search
     object[] must_skills? {

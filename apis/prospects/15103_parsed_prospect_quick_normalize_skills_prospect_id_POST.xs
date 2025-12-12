@@ -1,4 +1,6 @@
 query "parsed_prospect/quick_normalize_skills/{prospect_id}" verb=POST {
+  api_group = "prospects"
+
   input {
     int prospect_id? filters=min:1
   }

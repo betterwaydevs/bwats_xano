@@ -1,4 +1,6 @@
 query create_linkedin_connections verb=POST {
+  api_group = "linkedin"
+
   input {
     dblink {
       table = "linkedin_connections"

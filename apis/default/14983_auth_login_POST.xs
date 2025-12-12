@@ -1,5 +1,7 @@
 // Login and retrieve an authentication token
 query "auth/login" verb=POST {
+  api_group = "Default"
+
   input {
     email email?
     text password?

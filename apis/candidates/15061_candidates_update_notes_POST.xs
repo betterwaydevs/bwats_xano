@@ -1,4 +1,5 @@
 query "candidates/update_notes" verb=POST {
+  api_group = "candidates"
   auth = "user"
 
   input {

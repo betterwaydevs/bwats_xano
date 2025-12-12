@@ -1,4 +1,6 @@
 query applicants_file verb=GET {
+  api_group = "linkedin_applicants"
+
   input {
     dblink {
       table = "linkedin_applicants"
